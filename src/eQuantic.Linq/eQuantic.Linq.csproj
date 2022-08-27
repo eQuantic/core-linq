@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Description>eQuantic Linq Library</Description>
+        <Copyright>2017</Copyright>
+        <AssemblyTitle>eQuantic.Linq</AssemblyTitle>
+        <Version>1.0.0.0</Version>
+        <Authors>eQuantic Systems</Authors>
+        <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+        <AssemblyName>eQuantic.Linq</AssemblyName>
+        <PackageId>eQuantic.Linq</PackageId>
+        <PackageTags>eQuantic;Linq;Library</PackageTags>
+        <PackageReleaseNotes>Customed solutions for filterings, sortings and specification pattern</PackageReleaseNotes>
+        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
+        <PackageOutputPath>../artifacts/</PackageOutputPath>
+        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+        <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+        <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <PackageIcon>Icon.png</PackageIcon>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="Icon.png" Pack="true" PackagePath="Icon.png" />
+        <None Include="Icon_details.png" Pack="true" PackagePath="Icon_details.png" />
+        <None Include="Icon_dialog.png" Pack="true" PackagePath="Icon_dialog.png" />
+        <None Include="Icon_list.png" Pack="true" PackagePath="Icon_list.png" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
+</Project>
