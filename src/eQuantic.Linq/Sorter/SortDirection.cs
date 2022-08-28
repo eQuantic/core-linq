@@ -1,8 +1,7 @@
-﻿namespace eQuantic.Linq.Sorter
+﻿namespace eQuantic.Linq.Sorter;
+
+public enum SortDirection
 {
-    public enum SortDirection
-    {
-        Ascending,
-        Descending
-    }
+    Ascending,
+    Descending
 }

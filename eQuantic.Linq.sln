@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{BC458CA8-0
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E18DEDAB-F88D-414C-BF73-86B27DF69011}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C4CC37BE-E847-4002-B322-6F2C7D573977}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eQuantic.Linq.Tests", "test\eQuantic.Linq.Tests\eQuantic.Linq.Tests.csproj", "{FB22B381-EC0D-452C-AE63-8D913BB39F63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,8 +26,13 @@ Global
 		{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8} = {E18DEDAB-F88D-414C-BF73-86B27DF69011}
+		{FB22B381-EC0D-452C-AE63-8D913BB39F63} = {C4CC37BE-E847-4002-B322-6F2C7D573977}
 	EndGlobalSection
 EndGlobal

@@ -1,9 +1,8 @@
-﻿namespace eQuantic.Linq.Filter
+﻿namespace eQuantic.Linq.Filter;
+
+public interface IFiltering
 {
-    public interface IFiltering
-    {
-        string ColumnName { get; set; }
-        FilterOperator Operator { get; set; }
-        string StringValue { get; set; }
-    }
+    string ColumnName { get; set; }
+    FilterOperator Operator { get; set; }
+    string StringValue { get; set; }
 }

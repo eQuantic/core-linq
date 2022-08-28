@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace eQuantic.Linq.Sorter
 {
@@ -42,14 +44,29 @@ namespace eQuantic.Linq.Sorter
         /// <summary>
         /// Order by sortings.
         /// </summary>
+        /// <param name="useNullCheckForNestedProperties">if set to <c>true</c> [use null check for nested properties in order to avoid NullReferenceException].</param>
         /// <param name="sortings">The sortings.</param>
         /// <returns></returns>
-        public static IEntitySorter<T> OrderBy(params ISorting[] sortings)
+        public static IEntitySorter<T> OrderBy(bool useNullCheckForNestedProperties, params ISorting[] sortings)
         {
             IEntitySorter<T> entitySorter = null;
-            foreach (var sorting in sortings)
+            foreach (var sortingExpression in sortings)
             {
-                var builder = new EntitySorterBuilder<T>(sorting.ColumnName, sorting.SortDirection);
+                EntitySorterBuilder<T> builder = null;
+                
+                if (sortingExpression is ISorting<T> entitySorting)
+                {
+                    builder = new EntitySorterBuilder<T>(entitySorting);
+                }
+                else if (sortingExpression is ISorting sorting)
+                {
+                    builder = new EntitySorterBuilder<T>(sorting.ColumnName, sorting.SortDirection, useNullCheckForNestedProperties);
+                }
+                else
+                {
+                    throw new NotSupportedException("Sorting expression type is not supported");
+                }
+
                 entitySorter = entitySorter == null ? builder.BuildOrderByEntitySorter() : builder.BuildThenByEntitySorter(entitySorter);
             }
             return entitySorter;

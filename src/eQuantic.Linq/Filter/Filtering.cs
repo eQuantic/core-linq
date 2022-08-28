@@ -1,104 +1,125 @@
 ﻿using System.Globalization;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using eQuantic.Linq.Helpers;
+using eQuantic.Linq.Exceptions;
+using eQuantic.Linq.Extensions;
 
-namespace eQuantic.Linq.Filter
+namespace eQuantic.Linq.Filter;
+
+/// <summary>
+/// Filtering
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// <seealso cref="Filtering" />
+public class Filtering<T> : Filtering, IColumn<T>
 {
     /// <summary>
-    /// Filtering
+    /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <seealso cref="Filtering" />
-    public class Filtering<T> : Filtering
+    public Filtering() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
+    /// </summary>
+    /// <param name="expression">The expression.</param>
+    /// <param name="stringValue">The string value.</param>
+    /// <param name="operator">The operator.</param>
+    public Filtering(Expression<Func<T, object>> expression, string stringValue, FilterOperator? @operator = null)
+        : base(GetColumnName(expression), stringValue, @operator)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
-        /// </summary>
-        public Filtering() { }
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="stringValue">The string value.</param>
-        /// <param name="operator">The operator.</param>
-        public Filtering(Expression<Func<T, object>> expression, string stringValue, FilterOperator @operator = FilterOperator.Equal) : base(GetColumnName(expression), stringValue, @operator) { }
+    /// <summary>
+    /// Sets the column.
+    /// </summary>
+    /// <param name="expression">The expression.</param>
+    public void SetColumn(Expression<Func<T, object>> expression)
+    {
+        ColumnName = GetColumnName(expression);
+    }
 
-        /// <summary>
-        /// Sets the column.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        public void SetColumn(Expression<Func<T, object>> expression)
+    private static string GetColumnName(Expression<Func<T, object>> expression)
+    {
+        if (!(expression.Body is MemberExpression member))
         {
-            ColumnName = GetColumnName(expression);
+            var op = ((UnaryExpression)expression.Body).Operand;
+            member = (MemberExpression)op;
         }
+        return member.GetColumnName();
+    }
+}
 
-        private static string GetColumnName(Expression<Func<T, object>> expression)
+public class Filtering : IFiltering, IFormattable
+{
+    public const string DefaultFormat = "{0}:{1}({2})";
+    public const string ArgsRegex = @"(?:[^,()]+((?:\((?>[^()]+|\((?<open>)|\)(?<-open>))*\)))*)+";
+    protected const string FuncRegex = @"(\b[^()]+)\((.*)\)$";
+    internal const string SimplifiedFormat = "propertyName:value";
+    internal static readonly string ExpectedFormat = string.Format(DefaultFormat, "propertyName", "operator", "value");
+
+    public Filtering() { }
+
+    public Filtering(string columnName, string stringValue, FilterOperator? @operator = null)
+    {
+        this.ColumnName = columnName;
+
+        if (@operator == null)
         {
-            if (!(expression.Body is MemberExpression member))
-            {
-                var op = ((UnaryExpression) expression.Body).Operand;
-                member = (MemberExpression) op;
-            }
-            return PropertiesHelper.BuildColumnNameFromMemberExpression(member);
+            var parsedValue = ParseValue(stringValue);
+            this.StringValue = parsedValue.StringValue;
+            this.Operator = parsedValue.Operator;
+        }
+        else
+        {
+            this.StringValue = stringValue;
+            this.Operator = @operator.Value;
         }
     }
 
-    public class Filtering : IFiltering
+    public string ColumnName { get; set; }
+    public FilterOperator Operator { get; set; } = FilterOperator.Equal;
+    public string StringValue { get; set; }
+
+    public static IFiltering Parse(string query)
     {
-        public const string DefaultFormat = "{0}:{1}({2})";
-        private const string FuncRegex = @"(\b[^()]+)\((.*)\)$";
+        var columnNameAndValue = query.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
 
-        public Filtering() { }
-
-        public Filtering(string columnName, string stringValue, FilterOperator? @operator = null)
+        if (columnNameAndValue.Length < 2)
         {
-            this.ColumnName = columnName;
-
-            if (@operator == null)
-            {
-                var parsedValue = ParseValue(stringValue);
-                this.StringValue = parsedValue.StringValue;
-                this.Operator = parsedValue.Operator;
-            }
-            else
-            {
-                this.StringValue = stringValue;
-                this.Operator = @operator.Value;
-            }
+            throw new InvalidFormatException(nameof(Filtering), ExpectedFormat, SimplifiedFormat);
         }
 
-        public string ColumnName { get; set; }
-        public FilterOperator Operator { get; set; } = FilterOperator.Equal;
-        public string StringValue { get; set; }
+        var columnName = columnNameAndValue[0];
+        var value = columnNameAndValue[1];
 
-        public static(FilterOperator Operator, string StringValue) ParseValue(string value)
+        return new Filtering(columnName, value);
+    }
+
+    public static (FilterOperator Operator, string StringValue) ParseValue(string value)
+    {
+        var match = Regex.Match(value, FuncRegex);
+        if (match.Success && match.Groups.Count == 3)
         {
-            var match = Regex.Match(value, FuncRegex);
-            if (match.Success && match.Groups.Count == 3)
-            {
-                var @operator = match.Groups[1].Value;
-                var operatorFilter = FilterOperatorValues.GetOperator(@operator);
-                value = match.Groups[2].Value;
+            var @operator = match.Groups[1].Value;
+            var operatorFilter = FilterOperatorValues.GetOperator(@operator);
+            value = match.Groups[2].Value;
 
-                return (operatorFilter, value);
-            }
-
-            return (FilterOperator.Equal, value);
+            return (operatorFilter, value);
         }
 
-        public override string ToString()
-        {
-            return this.ToString(DefaultFormat, null);
-        }
+        return (FilterOperator.Equal, value);
+    }
 
-        public string ToString(string format, IFormatProvider formatProvider)
-        {
-            format ??= DefaultFormat;
-            formatProvider ??= CultureInfo.InvariantCulture;
-            var @operator = FilterOperatorValues.GetOperator(Operator);
-            return string.Format(formatProvider, format, ColumnName, @operator, StringValue);
-        }
+    public override string ToString()
+    {
+        return this.ToString(DefaultFormat, null);
+    }
+
+    public string ToString(string format, IFormatProvider formatProvider)
+    {
+        format ??= DefaultFormat;
+        formatProvider ??= CultureInfo.InvariantCulture;
+        var @operator = FilterOperatorValues.GetOperator(Operator);
+        return string.Format(formatProvider, format, ColumnName, @operator, StringValue);
     }
 }

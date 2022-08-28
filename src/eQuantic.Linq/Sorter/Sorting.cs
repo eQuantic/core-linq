@@ -1,56 +1,53 @@
 ﻿using System.Globalization;
 using System.Linq.Expressions;
-using eQuantic.Linq.Helpers;
+using eQuantic.Linq.Extensions;
 
-namespace eQuantic.Linq.Sorter
+namespace eQuantic.Linq.Sorter;
+
+public class Sorting<T> : Sorting, ISorting<T>
 {
-    public class Sorting<T> : Sorting
+    public Expression<Func<T, object>> Expression { get; private set; }
+    
+    public Sorting(Expression<Func<T, object>> expression, SortDirection sortDirection)
+        : base(GetColumnName(expression), sortDirection)
     {
-        public Sorting() { }
-
-        public Sorting(Expression<Func<T, object>> expression, SortDirection sortDirection)
-        {
-            SetColumn(expression);
-            SortDirection = sortDirection;
-        }
-
-        public void SetColumn(Expression<Func<T, object>> expression)
-        {
-            if (!(expression.Body is MemberExpression member))
-            {
-                var op = ((UnaryExpression) expression.Body).Operand;
-                member = (MemberExpression) op;
-            }
-            ColumnName = PropertiesHelper.BuildColumnNameFromMemberExpression(member);
-        }
+        Expression = expression;
     }
 
-    public class Sorting : ISorting
+    private static string GetColumnName(Expression<Func<T, object>> expression)
     {
-        public const string DefaultFormat = "{0}:{1}";
-
-        public Sorting() { }
-
-        public Sorting(string columnName, SortDirection sortDirection)
+        if (!(expression.Body is MemberExpression member))
         {
-            this.ColumnName = columnName;
-            this.SortDirection = sortDirection;
+            var op = ((UnaryExpression)expression.Body).Operand;
+            member = (MemberExpression)op;
         }
+        return member.GetColumnName();
+    }
+}
 
-        public string ColumnName { get; set; }
-        public SortDirection SortDirection { get; set; } = SortDirection.Ascending;
+public class Sorting : ISorting
+{
+    public const string DefaultFormat = "{0}:{1}";
 
-        public override string ToString()
-        {
-            return this.ToString(DefaultFormat, null);
-        }
+    public Sorting(string columnName, SortDirection sortDirection)
+    {
+        this.ColumnName = columnName;
+        this.SortDirection = sortDirection;
+    }
 
-        public string ToString(string format, IFormatProvider formatProvider)
-        {
-            format ??= DefaultFormat;
-            formatProvider ??= CultureInfo.InvariantCulture;
-            var directionString = SortDirection == SortDirection.Ascending ? "asc" : "desc";
-            return string.Format(formatProvider, format, ColumnName, directionString);
-        }
+    public string ColumnName { get; protected set; }
+    public SortDirection SortDirection { get; protected set; } = SortDirection.Ascending;
+    
+    public override string ToString()
+    {
+        return this.ToString(DefaultFormat, null);
+    }
+
+    public string ToString(string format, IFormatProvider formatProvider)
+    {
+        format ??= DefaultFormat;
+        formatProvider ??= CultureInfo.InvariantCulture;
+        var directionString = SortDirection == SortDirection.Ascending ? "asc" : "desc";
+        return string.Format(formatProvider, format, ColumnName, directionString);
     }
 }

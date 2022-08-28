@@ -1,7 +1,6 @@
-﻿namespace eQuantic.Linq.Sorter
+﻿namespace eQuantic.Linq.Sorter;
+
+public interface IEntitySorter<TEntity>
 {
-    public interface IEntitySorter<TEntity>
-    {
-        IOrderedQueryable<TEntity> Sort(IQueryable<TEntity> collection);
-    }
+    IOrderedQueryable<TEntity> Sort(IQueryable<TEntity> collection);
 }

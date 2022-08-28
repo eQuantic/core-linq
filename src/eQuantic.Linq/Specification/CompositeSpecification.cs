@@ -1,9 +1,8 @@
-﻿namespace eQuantic.Linq.Specification
-{
-    public abstract class CompositeSpecification<TEntity> : Specification<TEntity> where TEntity : class
-    {
-        public abstract ISpecification<TEntity> LeftSpecification { get; }
+﻿namespace eQuantic.Linq.Specification;
 
-        public abstract ISpecification<TEntity> RightSpecification { get; }
-    }
+public abstract class CompositeSpecification<TEntity> : Specification<TEntity> where TEntity : class
+{
+    public abstract ISpecification<TEntity> LeftSpecification { get; }
+
+    public abstract ISpecification<TEntity> RightSpecification { get; }
 }

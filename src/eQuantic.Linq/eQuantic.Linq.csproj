@@ -4,7 +4,7 @@
         <Description>eQuantic Linq Library</Description>
         <Copyright>2017</Copyright>
         <AssemblyTitle>eQuantic.Linq</AssemblyTitle>
-        <Version>1.0.0.0</Version>
+        <Version>1.1.0.0</Version>
         <Authors>eQuantic Systems</Authors>
         <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
         <AssemblyName>eQuantic.Linq</AssemblyName>
@@ -23,8 +23,8 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyVersion>1.1.0.0</AssemblyVersion>
+        <FileVersion>1.1.0.0</FileVersion>
         <PackageIcon>Icon.png</PackageIcon>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -37,5 +37,15 @@
         <None Include="Icon_dialog.png" Pack="true" PackagePath="Icon_dialog.png" />
         <None Include="Icon_list.png" Pack="true" PackagePath="Icon_list.png" />
         <None Include="../../LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+        </AssemblyAttribute>
     </ItemGroup>
 </Project>

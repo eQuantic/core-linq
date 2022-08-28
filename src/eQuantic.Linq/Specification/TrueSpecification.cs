@@ -1,13 +1,12 @@
 ﻿using System.Linq.Expressions;
 
-namespace eQuantic.Linq.Specification
+namespace eQuantic.Linq.Specification;
+
+public class TrueSpecification<TEntity> : Specification<TEntity> where TEntity : class
 {
-    public class TrueSpecification<TEntity> : Specification<TEntity> where TEntity : class
+    public override Expression<Func<TEntity, bool>> SatisfiedBy()
     {
-        public override Expression<Func<TEntity, bool>> SatisfiedBy()
-        {
-            Expression<Func<TEntity, bool>> trueExpression = t => true;
-            return trueExpression;
-        }
+        Expression<Func<TEntity, bool>> trueExpression = t => true;
+        return trueExpression;
     }
 }

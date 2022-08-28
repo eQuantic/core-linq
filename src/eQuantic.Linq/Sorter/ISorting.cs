@@ -1,8 +1,14 @@
-﻿namespace eQuantic.Linq.Sorter
+﻿using System.Linq.Expressions;
+
+namespace eQuantic.Linq.Sorter;
+
+public interface ISorting
 {
-    public interface ISorting
-    {
-        string ColumnName { get; set; }
-        SortDirection SortDirection { get; set; }
-    }
+    string ColumnName { get; }
+    SortDirection SortDirection { get; }
+}
+
+public interface ISorting<T> : ISorting
+{
+    Expression<Func<T, object>> Expression { get; }
 }
