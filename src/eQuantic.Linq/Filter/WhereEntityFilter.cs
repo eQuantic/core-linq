@@ -12,6 +12,7 @@ namespace eQuantic.Linq.Filter;
 internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
 {
     private readonly IEntityFilter<TEntity>? baseFilter;
+    private readonly CompositeOperator compositeOperator = CompositeOperator.And;
     private readonly Expression<Func<TEntity, bool>> predicate;
 
     /// <summary>Initializes a new instance of the <see cref="WhereEntityFilter{TEntity}"/> class.</summary>
@@ -24,15 +25,18 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
     /// <summary>Initializes a new instance of the <see cref="WhereEntityFilter{TEntity}"/> class.</summary>
     /// <param name="baseFilter">The base filter.</param>
     /// <param name="predicate">The predicate.</param>
-    public WhereEntityFilter(IEntityFilter<TEntity> baseFilter, Expression<Func<TEntity, bool>> predicate)
+    /// <param name="compositeOperator">The composite operator</param>
+    public WhereEntityFilter(IEntityFilter<TEntity> baseFilter, Expression<Func<TEntity, bool>> predicate,
+        CompositeOperator compositeOperator = CompositeOperator.And)
     {
         this.baseFilter = baseFilter;
         this.predicate = predicate;
+        this.compositeOperator = compositeOperator;
     }
 
     public override bool Equals(object obj)
     {
-        if (!(obj is WhereEntityFilter<TEntity> filter))
+        if (obj is not WhereEntityFilter<TEntity> filter)
         {
             return false;
         }
@@ -45,12 +49,7 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
     /// <returns>A filtered collection.</returns>
     public IQueryable<TEntity> Filter(IQueryable<TEntity> collection)
     {
-        if (baseFilter == null)
-        {
-            return collection.Where(predicate);
-        }
-
-        return baseFilter.Filter(collection).Where(predicate);
+        return baseFilter == null ? collection.Where(predicate) : baseFilter.Filter(collection).Where(predicate);
     }
 
     /// <summary>
@@ -59,9 +58,14 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
     /// <returns></returns>
     public Expression<Func<TEntity, bool>> GetExpression()
     {
-        return baseFilter == null ? 
-            predicate : 
-            ExpressionBuilder.AndAlso(baseFilter.GetExpression(), predicate);
+        if (baseFilter == null)
+        {
+            return predicate;
+        }
+
+        return compositeOperator == CompositeOperator.And
+            ? baseFilter.GetExpression().AndAlso(predicate)
+            : baseFilter.GetExpression().OrElse(predicate);
     }
 
     public override int GetHashCode()
@@ -73,7 +77,7 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
     /// <returns>A string that represents the current object.</returns>
     public override string ToString()
     {
-        string baseFilterPresentation =
+        var baseFilterPresentation =
             baseFilter != null ? baseFilter.ToString() : string.Empty;
 
         // The returned string is used in de DebuggerDisplay.

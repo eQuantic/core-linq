@@ -9,5 +9,5 @@ public interface IColumn
 
 public interface IColumn<T> : IColumn
 {
-    void SetColumn(Expression<Func<T, object>> expression);
+    void SetColumn(Expression<Func<T, object>> expression, bool useColumnFallback = false);
 }

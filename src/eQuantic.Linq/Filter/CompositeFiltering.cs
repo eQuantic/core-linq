@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq.Expressions;
+using System.Text.RegularExpressions;
+using eQuantic.Linq.Extensions;
 
 namespace eQuantic.Linq.Filter;
 
@@ -60,5 +62,28 @@ public class CompositeFiltering : Filtering
 
         var args = Values.Select(v => v.ToString());
         return $"{CompositeOperatorValues.GetOperator(CompositeOperator)}({string.Join(", ", args)})";
+    }
+}
+
+public class CompositeFiltering<T> : CompositeFiltering, IFiltering<T>
+{
+    public Expression<Func<T, object>> Expression { get; }
+        
+    public CompositeFiltering(CompositeOperator compositeOperator, params string[] values) : base(compositeOperator, values)
+    {
+    }
+
+    public CompositeFiltering(CompositeOperator compositeOperator, params IFiltering<T>[] values) : base(compositeOperator, values)
+    {
+    }
+
+    public CompositeFiltering(IFiltering<T> filtering) : base(filtering)
+    {
+        Expression = filtering.Expression;
+    }
+
+    public void SetColumn(Expression<Func<T, object>> expression, bool useColumnFallback = false)
+    {
+        ColumnName = expression.GetColumnName(useColumnFallback);
     }
 }

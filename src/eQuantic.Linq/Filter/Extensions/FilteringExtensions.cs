@@ -1,13 +1,15 @@
+using eQuantic.Linq.Casting;
+using eQuantic.Linq.Extensions;
 using eQuantic.Linq.Filter.Casting;
 
 namespace eQuantic.Linq.Filter.Extensions;
 
 public static class FilteringExtensions
 {
-    public static Filtering<TEntity>[] Cast<TEntity>(this IFiltering[] filtering,
+    public static IFiltering<TEntity>[] Cast<TEntity>(this IFiltering[] filtering,
         Action<FilteringCastOptions<TEntity>> options)
     {
-        var list = new List<Filtering<TEntity>>();
+        var list = new List<IFiltering<TEntity>>();
         var castOptions = new FilteringCastOptions<TEntity>();
         options.Invoke(castOptions);
             
@@ -21,7 +23,7 @@ public static class FilteringExtensions
         return list.ToArray();
     }
         
-    public static Filtering<TEntity>[] Cast<TEntity>(this IFiltering filtering,
+    public static IFiltering<TEntity>[] Cast<TEntity>(this IFiltering filtering,
         Action<FilteringCastOptions<TEntity>> options)
     {
         var castOptions = new FilteringCastOptions<TEntity>();
@@ -32,28 +34,44 @@ public static class FilteringExtensions
         return Cast(filtering, castOptions).ToArray();
     }
 
-    public static Filtering<TEntity>[] Merge<TEntity>(this Filtering<TEntity>[] filtering,
-        Filtering<TEntity>[] source)
+    public static IFiltering<TEntity>[] Merge<TEntity>(this IFiltering<TEntity>[] filtering,
+        IFiltering<TEntity>[] source)
     {
         var list = filtering.ToList();
         list.AddRange(filtering.Where(item => source.All(s => s.ColumnName != item.ColumnName)));
         return list.ToArray();
     }
 
-    private static List<Filtering<TEntity>> Cast<TEntity>(
+    private static List<IFiltering<TEntity>> Cast<TEntity>(
         IFiltering filteringItem,
         FilteringCastOptions<TEntity> options)
     {
-        var list = new List<Filtering<TEntity>>();
+        var list = new List<IFiltering<TEntity>>();
+        
+        if (filteringItem is CompositeFiltering compositeFiltering)
+        {
+            var values = compositeFiltering.Values.SelectMany(f => Cast(f, options)).ToArray();
+            list.Add(new CompositeFiltering<TEntity>(compositeFiltering.CompositeOperator,  values));
+            return list;
+        }
+        
         var mapping = options.GetMapping();
         var excludeUnmapped = options.GetExcludeUnmapped();
-            
+        var useColumnFallback = options.GetUseColumnFallback();
+        var columnFallbackApplicability = options.GetColumnFallbackApplicability();
+        
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(filteringItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
+            var columnName = filteringItem.ColumnName;
+            if (useColumnFallback)
+                columnName = columnName
+                    .GetColumnExpression<TEntity>(columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+                    .GetColumnName(columnFallbackApplicability == ColumnFallbackApplicability.ToDestination);
+            
             list.Add(new Filtering<TEntity>
             {
-                ColumnName = filteringItem.ColumnName,
+                ColumnName = columnName,
                 StringValue = filteringItem.StringValue,
                 Operator = filteringItem.Operator
             });

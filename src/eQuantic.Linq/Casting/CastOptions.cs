@@ -16,7 +16,9 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
     protected readonly Dictionary<string, TColumnMap> Mapping = new Dictionary<string, TColumnMap>(StringComparer.InvariantCultureIgnoreCase);
     private bool excludeUnmapped;
     private bool throwUnmapped;
-        
+    private bool useColumnFallback;
+    private ColumnFallbackApplicability columnFallbackApplicability;
+    
     public TCastOptions Map(string sourceColumnName, Expression<Func<TEntity, object>> destinationColumn)
     {
         Mapping.Add(sourceColumnName, new TColumnMap{ Column = destinationColumn });
@@ -34,8 +36,17 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
         throwUnmapped = true;
         return (TCastOptions)this;
     }
-        
+    
+    public TCastOptions UseColumnFallback(ColumnFallbackApplicability applicability = ColumnFallbackApplicability.ToDestination)
+    {
+        useColumnFallback = true;
+        columnFallbackApplicability = applicability;
+        return (TCastOptions)this;
+    }
+    
     internal Dictionary<string, TColumnMap> GetMapping() => Mapping;
     internal bool GetExcludeUnmapped() => excludeUnmapped;
     internal bool GetThrowUnmapped() => throwUnmapped;
+    internal bool GetUseColumnFallback() => useColumnFallback;
+    internal ColumnFallbackApplicability GetColumnFallbackApplicability() => columnFallbackApplicability;
 }

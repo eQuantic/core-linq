@@ -1,8 +1,14 @@
-﻿namespace eQuantic.Linq.Filter;
+﻿using System.Linq.Expressions;
 
-public interface IFiltering
+namespace eQuantic.Linq.Filter;
+
+public interface IFiltering : IColumn
 {
-    string ColumnName { get; set; }
     FilterOperator Operator { get; set; }
     string StringValue { get; set; }
+}
+
+public interface IFiltering<T> : IFiltering, IColumn<T>
+{
+    Expression<Func<T, object>> Expression { get; }
 }

@@ -11,12 +11,16 @@ namespace eQuantic.Linq.Filter;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <seealso cref="Filtering" />
-public class Filtering<T> : Filtering, IColumn<T>
+public class Filtering<T> : Filtering, IFiltering<T>
 {
+    public Expression<Func<T, object>> Expression { get; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
     /// </summary>
-    public Filtering() { }
+    public Filtering()
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
@@ -24,28 +28,22 @@ public class Filtering<T> : Filtering, IColumn<T>
     /// <param name="expression">The expression.</param>
     /// <param name="stringValue">The string value.</param>
     /// <param name="operator">The operator.</param>
-    public Filtering(Expression<Func<T, object>> expression, string stringValue, FilterOperator? @operator = null)
-        : base(GetColumnName(expression), stringValue, @operator)
+    /// <param name="useColumnFallback">Use column fallback</param>
+    public Filtering(Expression<Func<T, object>> expression, string stringValue, FilterOperator? @operator = null,
+        bool useColumnFallback = false)
+        : base(expression.GetColumnName(useColumnFallback), stringValue, @operator)
     {
+        this.Expression = expression;
     }
 
     /// <summary>
     /// Sets the column.
     /// </summary>
     /// <param name="expression">The expression.</param>
-    public void SetColumn(Expression<Func<T, object>> expression)
+    /// <param name="useColumnFallback">Use column fallback</param>
+    public void SetColumn(Expression<Func<T, object>> expression, bool useColumnFallback = false)
     {
-        ColumnName = GetColumnName(expression);
-    }
-
-    private static string GetColumnName(Expression<Func<T, object>> expression)
-    {
-        if (!(expression.Body is MemberExpression member))
-        {
-            var op = ((UnaryExpression)expression.Body).Operand;
-            member = (MemberExpression)op;
-        }
-        return member.GetColumnName();
+        ColumnName = expression.GetColumnName(useColumnFallback);
     }
 }
 
@@ -57,7 +55,9 @@ public class Filtering : IFiltering, IFormattable
     internal const string SimplifiedFormat = "propertyName:value";
     internal static readonly string ExpectedFormat = string.Format(DefaultFormat, "propertyName", "operator", "value");
 
-    public Filtering() { }
+    public Filtering()
+    {
+    }
 
     public Filtering(string columnName, string stringValue, FilterOperator? @operator = null)
     {
