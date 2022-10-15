@@ -61,6 +61,11 @@ public abstract class Specification<T> : ISpecification<T> where T : class
         return new AndSpecification<T>(this, specification);
     }
 
+    public ISpecification<T> AndAlso(ISpecification<T> specification)
+    {
+        return new AndAlsoSpecification<T>(this, specification);
+    }
+    
     public ISpecification<T> AndNot(ISpecification<T> specification)
     {
         return new AndSpecification<T>(this, new NotSpecification<T>(specification));
@@ -74,6 +79,11 @@ public abstract class Specification<T> : ISpecification<T> where T : class
     public ISpecification<T> Or(ISpecification<T> specification)
     {
         return new OrSpecification<T>(this, specification);
+    }
+    
+    public ISpecification<T> OrElse(ISpecification<T> specification)
+    {
+        return new OrElseSpecification<T>(this, specification);
     }
 
     public ISpecification<T> OrNot(ISpecification<T> specification)
