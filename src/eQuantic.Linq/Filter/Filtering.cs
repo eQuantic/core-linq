@@ -80,7 +80,7 @@ public class Filtering : IFiltering, IFormattable
     public FilterOperator Operator { get; set; } = FilterOperator.Equal;
     public string StringValue { get; set; }
 
-    public static IFiltering Parse(string query)
+    public static Filtering Parse(string query)
     {
         var columnNameAndValue = query.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
 
@@ -95,6 +95,20 @@ public class Filtering : IFiltering, IFormattable
         return new Filtering(columnName, value);
     }
 
+    public static bool TryParse(string query, out Filtering filtering)
+    {
+        try
+        {
+            filtering = Parse(query);
+            return true;
+        }
+        catch
+        {
+            filtering = null!;
+            return false;
+        }
+    }
+    
     public static (FilterOperator Operator, string StringValue) ParseValue(string value)
     {
         var match = Regex.Match(value, FuncRegex);
