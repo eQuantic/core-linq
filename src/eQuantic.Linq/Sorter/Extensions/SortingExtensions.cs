@@ -1,4 +1,6 @@
-﻿using eQuantic.Linq.Sorter.Casting;
+﻿using eQuantic.Linq.Casting;
+using eQuantic.Linq.Extensions;
+using eQuantic.Linq.Sorter.Casting;
 
 namespace eQuantic.Linq.Sorter.Extensions;
 
@@ -13,9 +15,9 @@ public static class SortingExtensions
 
         ThrowUnmapped(sorting, castOptions);
             
-        foreach (var filteringItem in sorting)
+        foreach (var sortingItem in sorting)
         {
-            list.AddRange(Cast(filteringItem, castOptions));
+            list.AddRange(Cast(sortingItem, castOptions));
         }
 
         return list.ToArray();
@@ -44,12 +46,23 @@ public static class SortingExtensions
         var list = new List<Sorting<TEntity>>();
         var mapping = options.GetMapping();
         var excludeUnmapped = options.GetExcludeUnmapped();
-            
+        var useColumnFallback = options.GetUseColumnFallback();
+        var columnFallbackApplicability = options.GetColumnFallbackApplicability();
+        
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var builder = new EntitySorterBuilder<TEntity>(sortingItem.ColumnName, sortingItem.SortDirection);
-            list.Add(builder.BuildSorting());
+            var columnName = sortingItem.ColumnName;
+            if (useColumnFallback)
+                columnName = columnName
+                    .GetColumnExpression<TEntity>(columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+                    .GetColumnName(columnFallbackApplicability == ColumnFallbackApplicability.ToDestination);
+            
+            list.Add(new Sorting<TEntity>
+            {
+                ColumnName = columnName,
+                SortDirection = sortingItem.SortDirection
+            });
         }
 
         if (!mapping.ContainsKey(sortingItem.ColumnName))

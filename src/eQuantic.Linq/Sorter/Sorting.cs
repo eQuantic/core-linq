@@ -2,14 +2,17 @@
 using System.Linq.Expressions;
 using eQuantic.Linq.Exceptions;
 using eQuantic.Linq.Extensions;
-using eQuantic.Linq.Filter;
 
 namespace eQuantic.Linq.Sorter;
 
 public class Sorting<T> : Sorting, ISorting<T>
 {
     public Expression<Func<T, object>> Expression { get; private set; }
-    
+
+    internal Sorting()
+    {
+        
+    }
     public Sorting(Expression<Func<T, object>> expression, SortDirection sortDirection)
         : base(GetColumnName(expression), sortDirection)
     {
@@ -31,6 +34,10 @@ public class Sorting : ISorting
 {
     public const string DefaultFormat = "{0}:{1}";
     internal static readonly string ExpectedFormat = string.Format(DefaultFormat, "propertyName", "direction");
+
+    internal Sorting()
+    {
+    }
     
     public Sorting(string columnName, SortDirection sortDirection)
     {
@@ -38,8 +45,8 @@ public class Sorting : ISorting
         this.SortDirection = sortDirection;
     }
 
-    public string ColumnName { get; protected set; }
-    public SortDirection SortDirection { get; protected set; } = SortDirection.Ascending;
+    public string ColumnName { get; internal set; }
+    public SortDirection SortDirection { get; internal set; } = SortDirection.Ascending;
     
     public static Sorting Parse(string query)
     {
