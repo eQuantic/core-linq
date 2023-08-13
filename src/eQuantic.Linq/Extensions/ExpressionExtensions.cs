@@ -44,14 +44,20 @@ public static class ExpressionExtensions
         return sb.ToString();
     }
 
-    public static LambdaExpression GetColumnExpression<TEntity>(this string columnName, bool useColumnFallback = false, bool withKeyType = true)
+    public static LambdaExpression GetColumnExpression<TEntity>(this string columnName, bool useColumnFallback = false)
     {
         var properties = EntityBuilder.GetProperties<TEntity>(columnName, useColumnFallback);
-        var keyType = withKeyType ? properties.Last().PropertyType : typeof(object);
+        var keyType = properties.Last().PropertyType;
         var builder = LambdaBuilderFactory.Current.Create(typeof(TEntity), keyType);
         return builder.BuildLambda(properties.ToArray());
     }
 
+    public static Expression<Func<TEntity, object>> ToExpFunc<TEntity>(this LambdaExpression lambdaExpression)
+    {
+        Expression converted = Expression.Convert(lambdaExpression.Body, typeof(object));
+        return Expression.Lambda<Func<TEntity,object>>(converted, lambdaExpression.Parameters);
+    }
+    
     /// <summary>
     /// Gets the name of the expression member.
     /// </summary>

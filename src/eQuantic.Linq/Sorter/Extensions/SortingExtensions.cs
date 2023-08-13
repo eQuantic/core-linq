@@ -53,9 +53,10 @@ public static class SortingExtensions
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var exp = (Expression<Func<TEntity, object>>)sortingItem.ColumnName
+            var exp = sortingItem.ColumnName
                 .GetColumnExpression<TEntity>(useColumnFallback &&
-                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource, false);
+                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+                .ToExpFunc<TEntity>();
             list.Add(new Sorting<TEntity>(exp, sortingItem.SortDirection,
                 columnFallbackApplicability == ColumnFallbackApplicability.ToDestination));
         }

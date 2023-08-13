@@ -64,9 +64,10 @@ public static class FilteringExtensions
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(filteringItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var exp = (Expression<Func<TEntity, object>>)filteringItem.ColumnName
+            var exp = filteringItem.ColumnName
                 .GetColumnExpression<TEntity>(useColumnFallback &&
-                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource, false);
+                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+                .ToExpFunc<TEntity>();
 
             list.Add(new Filtering<TEntity>(exp, 
                 filteringItem.StringValue, 

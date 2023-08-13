@@ -1,5 +1,3 @@
-using eQuantic.Linq.Filter;
-using eQuantic.Linq.Filter.Extensions;
 using eQuantic.Linq.Sorter;
 using eQuantic.Linq.Sorter.Extensions;
 
@@ -8,29 +6,23 @@ namespace eQuantic.Linq.Tests.Sorter.Extensions;
 [TestFixture]
 public class SortingExtensionsTests
 {
-    public class ObjectA
-    {
-        public string PropertyA { get; set; } = string.Empty;
-        public string CommonProperty { get; set; } = string.Empty;
-    }
-
-    public class ObjectB
-    {
-        public string PropertyB { get; set; } = string.Empty;
-        public string CommonProperty { get; set; } = string.Empty;
-    }
-
     [Test]
     public void SortingExtensions_Cast()
     {
         // Arrange
         ISorting[] sorters = { 
             new Sorting<ObjectA>(o => o.PropertyA),
-            new Sorting<ObjectA>(o => o.CommonProperty, SortDirection.Descending)
+            new Sorting<ObjectA>(o => o.CommonProperty, SortDirection.Descending),
+            new Sorting<ObjectA>(o => o.Date),
+            new Sorting<ObjectA>(o => o.SubObject.PropertyA)
         };
 
         // Act
-        var sorterB = sorters.Cast<ObjectB>(opt => opt.Map(nameof(ObjectA.PropertyA), o => o.PropertyB));
+        var sorterB = sorters.Cast<ObjectB>(opt => 
+            opt
+                .Map(nameof(ObjectA.PropertyA), o => o.PropertyB)
+                .Map($"{nameof(ObjectA.SubObject)}.{nameof(SubObjectA.PropertyA)}", o => o.SubObject.PropertyB)
+        );
         
         // Assert
         Assert.Multiple(() =>

@@ -6,18 +6,6 @@ namespace eQuantic.Linq.Tests.Filter.Extensions;
 [TestFixture]
 public class FilteringExtensionsTests
 {
-    public class ObjectA
-    {
-        public string PropertyA { get; set; } = string.Empty;
-        public string CommonProperty { get; set; } = string.Empty;
-    }
-
-    public class ObjectB
-    {
-        public string PropertyB { get; set; } = string.Empty;
-        public string CommonProperty { get; set; } = string.Empty;
-    }
-
     [Test]
     public void FilteringExtensions_Cast()
     {
@@ -25,11 +13,15 @@ public class FilteringExtensionsTests
         IFiltering[] filters =
         {
             new Filtering<ObjectA>(o => o.PropertyA, "test"),
-            new Filtering<ObjectA>(o => o.CommonProperty, "test", FilterOperator.NotEqual)
+            new Filtering<ObjectA>(o => o.CommonProperty, "test", FilterOperator.NotEqual),
+            new Filtering<ObjectA>(o => o.SubObject.PropertyA, "test", FilterOperator.StartsWith)
         };
 
         // Act
-        var filterB = filters.Cast<ObjectB>(opt => opt.Map(nameof(ObjectA.PropertyA), o => o.PropertyB));
+        var filterB = filters.Cast<ObjectB>(opt => opt
+            .Map(nameof(ObjectA.PropertyA), o => o.PropertyB)
+            .Map($"{nameof(ObjectA.SubObject)}.{nameof(SubObjectA.PropertyA)}", o => o.SubObject.PropertyB)
+        );
 
         // Assert
         Assert.Multiple(() =>
@@ -40,6 +32,10 @@ public class FilteringExtensionsTests
             Assert.That(filterB[1].ColumnName, Is.EqualTo(nameof(ObjectB.CommonProperty)));
             Assert.That(filterB[1].StringValue, Is.EqualTo("test"));
             Assert.That(filterB[1].Operator, Is.EqualTo(FilterOperator.NotEqual));
+            
+            Assert.That(filterB[2].ColumnName, Is.EqualTo($"{nameof(ObjectB.SubObject)}.{nameof(SubObjectB.PropertyB)}"));
+            Assert.That(filterB[2].StringValue, Is.EqualTo("test"));
+            Assert.That(filterB[2].Operator, Is.EqualTo(FilterOperator.StartsWith));
         });
     }
 }
