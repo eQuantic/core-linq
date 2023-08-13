@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using eQuantic.Linq.Casting;
 using eQuantic.Linq.Extensions;
 using eQuantic.Linq.Filter.Casting;
@@ -63,18 +64,14 @@ public static class FilteringExtensions
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(filteringItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var columnName = filteringItem.ColumnName;
-            if (useColumnFallback)
-                columnName = columnName
-                    .GetColumnExpression<TEntity>(columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
-                    .GetColumnName(columnFallbackApplicability == ColumnFallbackApplicability.ToDestination);
-            
-            list.Add(new Filtering<TEntity>
-            {
-                ColumnName = columnName,
-                StringValue = filteringItem.StringValue,
-                Operator = filteringItem.Operator
-            });
+            var exp = (Expression<Func<TEntity, object>>)filteringItem.ColumnName
+                .GetColumnExpression<TEntity>(useColumnFallback &&
+                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource, false);
+
+            list.Add(new Filtering<TEntity>(exp, 
+                filteringItem.StringValue, 
+                filteringItem.Operator,
+                columnFallbackApplicability == ColumnFallbackApplicability.ToDestination));
         }
 
         if (!mapping.ContainsKey(filteringItem.ColumnName))

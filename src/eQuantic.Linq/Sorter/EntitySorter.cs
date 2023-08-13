@@ -54,11 +54,11 @@ namespace eQuantic.Linq.Sorter
             {
                 EntitySorterBuilder<T> builder = null;
                 
-                if (sortingExpression is ISorting<T> entitySorting)
+                if (sortingExpression is ISorting<T> { Expression: not null } entitySorting)
                 {
                     builder = new EntitySorterBuilder<T>(entitySorting);
                 }
-                else if (sortingExpression is ISorting sorting)
+                else if (sortingExpression is ISorting sorting && !string.IsNullOrEmpty(sorting.ColumnName))
                 {
                     builder = new EntitySorterBuilder<T>(sorting.ColumnName, sorting.SortDirection, useNullCheckForNestedProperties);
                 }

@@ -1,4 +1,5 @@
-﻿using eQuantic.Linq.Casting;
+﻿using System.Linq.Expressions;
+using eQuantic.Linq.Casting;
 using eQuantic.Linq.Extensions;
 using eQuantic.Linq.Sorter.Casting;
 
@@ -14,7 +15,7 @@ public static class SortingExtensions
         options.Invoke(castOptions);
 
         ThrowUnmapped(sorting, castOptions);
-            
+
         foreach (var sortingItem in sorting)
         {
             list.AddRange(Cast(sortingItem, castOptions));
@@ -29,8 +30,8 @@ public static class SortingExtensions
         var castOptions = new SortingCastOptions<TEntity>();
         options.Invoke(castOptions);
 
-        ThrowUnmapped(new []{ sorting }, castOptions);
-            
+        ThrowUnmapped(new[] { sorting }, castOptions);
+
         return Cast(sorting, castOptions).ToArray();
     }
 
@@ -48,21 +49,15 @@ public static class SortingExtensions
         var excludeUnmapped = options.GetExcludeUnmapped();
         var useColumnFallback = options.GetUseColumnFallback();
         var columnFallbackApplicability = options.GetColumnFallbackApplicability();
-        
+
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var columnName = sortingItem.ColumnName;
-            if (useColumnFallback)
-                columnName = columnName
-                    .GetColumnExpression<TEntity>(columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
-                    .GetColumnName(columnFallbackApplicability == ColumnFallbackApplicability.ToDestination);
-            
-            list.Add(new Sorting<TEntity>
-            {
-                ColumnName = columnName,
-                SortDirection = sortingItem.SortDirection
-            });
+            var exp = (Expression<Func<TEntity, object>>)sortingItem.ColumnName
+                .GetColumnExpression<TEntity>(useColumnFallback &&
+                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource, false);
+            list.Add(new Sorting<TEntity>(exp, sortingItem.SortDirection,
+                columnFallbackApplicability == ColumnFallbackApplicability.ToDestination));
         }
 
         if (!mapping.ContainsKey(sortingItem.ColumnName))
@@ -85,7 +80,7 @@ public static class SortingExtensions
 
         return list;
     }
-        
+
     private static void ThrowUnmapped<TEntity>(IEnumerable<ISorting> sorting, SortingCastOptions<TEntity> options)
     {
         var throwUnmapped = options.GetThrowUnmapped();
@@ -95,10 +90,11 @@ public static class SortingExtensions
             .Select(o => o.ColumnName)
             .Except(mappedColumnNames, StringComparer.InvariantCultureIgnoreCase)
             .ToArray();
-            
+
         if (throwUnmapped && unmappedColumnNames.Any())
         {
-            throw new InvalidCastException($"The following columns are unknown: {string.Join(", ", unmappedColumnNames)}");
+            throw new InvalidCastException(
+                $"The following columns are unknown: {string.Join(", ", unmappedColumnNames)}");
         }
     }
 }

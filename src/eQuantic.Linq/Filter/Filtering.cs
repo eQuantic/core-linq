@@ -14,14 +14,7 @@ namespace eQuantic.Linq.Filter;
 public class Filtering<T> : Filtering, IFiltering<T>
 {
     public Expression<Func<T, object>> Expression { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
-    /// </summary>
-    public Filtering()
-    {
-    }
-
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="Filtering{T}"/> class.
     /// </summary>
@@ -55,10 +48,10 @@ public class Filtering : IFiltering, IFormattable
     internal const string SimplifiedFormat = "propertyName:value";
     internal static readonly string ExpectedFormat = string.Format(DefaultFormat, "propertyName", "operator", "value");
 
-    public Filtering()
+    internal Filtering()
     {
     }
-
+    
     public Filtering(string columnName, string stringValue, FilterOperator? @operator = null)
     {
         this.ColumnName = columnName;

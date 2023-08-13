@@ -18,7 +18,7 @@ namespace eQuantic.Linq.Tests.Filter
             var actualExpression = filtering.ToString();
 
             // Assert
-            Assert.AreEqual(actualExpression, expectedExpression);
+            Assert.That(expectedExpression, Is.EqualTo(actualExpression));
         }
         
         [TestCase("column", "invalid(value)")]
@@ -39,10 +39,13 @@ namespace eQuantic.Linq.Tests.Filter
             var filter = Filtering.Parse(query);
 
             // Assert
-            Assert.IsNotNull(filter);
-            Assert.IsInstanceOf<Filtering>(filter);
-            Assert.AreEqual(filter.Operator, expectedOperator);
-            Assert.AreEqual(filter.StringValue, expectedValue);
+            Assert.Multiple(() =>
+            {
+                Assert.That(filter, Is.Not.Null);
+                Assert.That(filter, Is.InstanceOf<Filtering>());
+                Assert.That(expectedOperator, Is.EqualTo(filter.Operator));
+                Assert.That(expectedValue, Is.EqualTo(filter.StringValue));
+            });
         }
     }
 }

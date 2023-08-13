@@ -8,25 +8,24 @@ namespace eQuantic.Linq.Sorter;
 public class Sorting<T> : Sorting, ISorting<T>
 {
     public Expression<Func<T, object>> Expression { get; private set; }
-
-    internal Sorting()
-    {
-        
-    }
-    public Sorting(Expression<Func<T, object>> expression, SortDirection sortDirection)
-        : base(GetColumnName(expression), sortDirection)
+    
+    public Sorting(
+        Expression<Func<T, object>> expression, 
+        SortDirection sortDirection = SortDirection.Ascending,
+        bool useColumnFallback = false)
+        : base(GetColumnName(expression, useColumnFallback), sortDirection)
     {
         Expression = expression;
     }
 
-    private static string GetColumnName(Expression<Func<T, object>> expression)
+    private static string GetColumnName(Expression<Func<T, object>> expression, bool useColumnFallback = false)
     {
-        if (!(expression.Body is MemberExpression member))
-        {
-            var op = ((UnaryExpression)expression.Body).Operand;
-            member = (MemberExpression)op;
-        }
-        return member.GetColumnName();
+        if (expression.Body is MemberExpression member) 
+            return member.GetColumnName(useColumnFallback);
+        
+        var op = ((UnaryExpression)expression.Body).Operand;
+        member = (MemberExpression)op;
+        return member.GetColumnName(useColumnFallback);
     }
 }
 
@@ -34,10 +33,6 @@ public class Sorting : ISorting
 {
     public const string DefaultFormat = "{0}:{1}";
     internal static readonly string ExpectedFormat = string.Format(DefaultFormat, "propertyName", "direction");
-
-    internal Sorting()
-    {
-    }
     
     public Sorting(string columnName, SortDirection sortDirection)
     {
@@ -45,8 +40,8 @@ public class Sorting : ISorting
         this.SortDirection = sortDirection;
     }
 
-    public string ColumnName { get; internal set; }
-    public SortDirection SortDirection { get; internal set; } = SortDirection.Ascending;
+    public string ColumnName { get; }
+    public SortDirection SortDirection { get; }
     
     public static Sorting Parse(string query)
     {
@@ -81,10 +76,10 @@ public class Sorting : ISorting
     
     public override string ToString()
     {
-        return this.ToString(DefaultFormat, null);
+        return ToString(DefaultFormat, null);
     }
 
-    public string ToString(string format, IFormatProvider formatProvider)
+    public string ToString(string? format, IFormatProvider? formatProvider)
     {
         format ??= DefaultFormat;
         formatProvider ??= CultureInfo.InvariantCulture;

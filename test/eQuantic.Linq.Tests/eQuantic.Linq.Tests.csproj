@@ -19,5 +19,4 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\eQuantic.Linq\eQuantic.Linq.csproj" />
     </ItemGroup>
-
 </Project>
