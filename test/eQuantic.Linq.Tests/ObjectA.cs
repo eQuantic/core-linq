@@ -6,4 +6,6 @@ public class ObjectA
     public string CommonProperty { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public SubObjectA SubObject { get; set; } = new();
+
+    public List<SubObjectA> SubObjects { get; set; } = new();
 }

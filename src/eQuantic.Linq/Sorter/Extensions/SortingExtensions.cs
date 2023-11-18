@@ -47,9 +47,13 @@ public static class SortingExtensions
         var list = new List<Sorting<TEntity>>();
         var mapping = options.GetMapping();
         var excludeUnmapped = options.GetExcludeUnmapped();
+        var excluded = options.GetExcluded();
         var useColumnFallback = options.GetUseColumnFallback();
         var columnFallbackApplicability = options.GetColumnFallbackApplicability();
 
+        if (excluded.Any(o => sortingItem.ColumnName.Equals(o, StringComparison.InvariantCultureIgnoreCase)))
+            return list;
+        
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {

@@ -38,4 +38,28 @@ public class FilteringExtensionsTests
             Assert.That(filterB[2].Operator, Is.EqualTo(FilterOperator.StartsWith));
         });
     }
+    
+    [Test]
+    public void FilteringExtensions_Cast_CompositeFiltering()
+    {
+        // Arrange
+        IFiltering[] filters =
+        {
+            new Filtering<ObjectA>(o => o.PropertyA, "test"),
+            new CompositeFiltering(CompositeOperator.And, 
+                new Filtering<ObjectA>(o => o.Date, "2023-08-01", FilterOperator.GreaterThanOrEqual),
+                new Filtering<ObjectA>(o => o.Date, "2023-08-30", FilterOperator.LessThanOrEqual)
+            )
+        };
+
+        // Act
+        var filterB = filters.Cast<ObjectB>(opt => opt.Map(nameof(ObjectA.PropertyA), o => o.PropertyB));
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(filterB[0].ColumnName, Is.EqualTo(nameof(ObjectB.PropertyB)));
+            Assert.That(filterB[1], Is.InstanceOf<CompositeFiltering>());
+        });
+    }
 }

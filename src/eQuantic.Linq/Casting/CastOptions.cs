@@ -5,6 +5,7 @@ namespace eQuantic.Linq.Casting;
 public interface ICastOptions<out TCastOptions, TEntity> where TCastOptions : ICastOptions<TCastOptions, TEntity>
 {
     TCastOptions Map(string sourceColumnName, Expression<Func<TEntity, object>> destinationColumn);
+    TCastOptions Exclude(string sourceColumnName);
     TCastOptions ExcludeUnmapped();
     TCastOptions ThrowUnmapped();
 }
@@ -14,6 +15,7 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
     where TColumnMap : ColumnMap<TEntity>, new()
 {
     protected readonly Dictionary<string, TColumnMap> Mapping = new Dictionary<string, TColumnMap>(StringComparer.InvariantCultureIgnoreCase);
+    private readonly HashSet<string> excluded = new();
     private bool excludeUnmapped;
     private bool throwUnmapped;
     private bool useColumnFallback;
@@ -24,7 +26,11 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
         Mapping.Add(sourceColumnName, new TColumnMap{ Column = destinationColumn });
         return (TCastOptions)this;
     }
-        
+    public TCastOptions Exclude(string sourceColumnName)
+    {
+        excluded.Add(sourceColumnName);
+        return (TCastOptions)this;
+    }
     public TCastOptions ExcludeUnmapped()
     {
         excludeUnmapped = true;
@@ -45,6 +51,7 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
     }
     
     internal Dictionary<string, TColumnMap> GetMapping() => Mapping;
+    internal HashSet<string> GetExcluded() => excluded;
     internal bool GetExcludeUnmapped() => excludeUnmapped;
     internal bool GetThrowUnmapped() => throwUnmapped;
     internal bool GetUseColumnFallback() => useColumnFallback;

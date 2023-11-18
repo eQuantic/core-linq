@@ -11,18 +11,18 @@ public class CompositeFilteringTests
     {
         var composite = CompositeFiltering.ParseComposite(query);
 
-        Assert.IsNotNull(composite);
-        Assert.IsInstanceOf<Filtering>(composite);
+        Assert.That(composite, Is.Not.Null);
+        Assert.That(composite, Is.InstanceOf<Filtering>());
     }
 
     [TestCase("or(name:eq(test1))")]
     [TestCase("and(name:eq(test1), name:eq(test2))")]
-    [TestCase("or(name:eq(test1), name:eq(test2))")]
+    [TestCase("or(name:eq(test1),name:eq(test2))")]
     public void Parse_query_successfully(string query)
     {
         var composite = CompositeFiltering.ParseComposite(query);
 
-        Assert.IsNotNull(composite);
-        Assert.IsInstanceOf<CompositeFiltering>(composite);
+        Assert.That(composite, Is.Not.Null);
+        Assert.That(composite, Is.InstanceOf<CompositeFiltering>());
     }
 }

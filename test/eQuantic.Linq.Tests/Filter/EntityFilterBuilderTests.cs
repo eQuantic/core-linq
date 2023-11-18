@@ -7,7 +7,7 @@ namespace eQuantic.Linq.Tests.Filter
     [TestFixture]
     public class EntityFilterBuilderTests
     {
-        private static object[] TestCases =
+        private static object[] _testCases =
         {
             new object[] {
                 nameof(TestObject.Name), "name", FilterOperator.Equal,
@@ -71,7 +71,7 @@ namespace eQuantic.Linq.Tests.Filter
             },
         };
 
-        private static object[] TestCasesComplexCasts =
+        private static object[] _testCasesComplexCasts =
         {
             new object[] {nameof(TestObject.Type), "Foo", FilterOperator.Equal},
             new object[] {nameof(TestObject.UniqueId), "3fcbcf67-393a-4df3-94cc-9fa3654964bc", FilterOperator.Equal},
@@ -79,7 +79,7 @@ namespace eQuantic.Linq.Tests.Filter
             new object[] {nameof(TestObject.NullableNumber), "1", FilterOperator.Equal}
         };
 
-        private static object[] TestCasesWithColumns =
+        private static object[] _testCasesWithColumns =
         {
             new object[] {nameof(TestObject.NumberWithDifferentColumnName), "1", FilterOperator.Equal},
             new object[] {"Number2", "1", FilterOperator.Equal}
@@ -92,7 +92,7 @@ namespace eQuantic.Linq.Tests.Filter
         }
 
         [Test]
-        [TestCaseSource(nameof(TestCasesComplexCasts))]
+        [TestCaseSource(nameof(_testCasesComplexCasts))]
         public void BuildWhereEntityFilter_returns_filter_When_casts_are_complex(string propertyName, object value, FilterOperator filterOperator)
         {
             // Arrange
@@ -102,7 +102,7 @@ namespace eQuantic.Linq.Tests.Filter
             var actualSorter = builder.BuildWhereEntityFilter();
 
             // Assert
-            Assert.NotNull(actualSorter);
+            Assert.That(actualSorter, Is.Not.Null);
         }
 
         [TestCase(true)]
@@ -125,7 +125,7 @@ namespace eQuantic.Linq.Tests.Filter
         }
 
         [Test]
-        [TestCaseSource(nameof(TestCasesWithColumns))]
+        [TestCaseSource(nameof(_testCasesWithColumns))]
         public void BuildWhereEntityFilter_returns_filter_When_column_name_has_attribute(string propertyName, object value, FilterOperator filterOperator)
         {
             // Arrange
@@ -135,11 +135,11 @@ namespace eQuantic.Linq.Tests.Filter
             var actualSorter = builder.BuildWhereEntityFilter();
 
             // Assert
-            Assert.NotNull(actualSorter);
+            Assert.That(actualSorter, Is.Not.Null);
         }
 
         [Test]
-        [TestCaseSource(nameof(TestCases))]
+        [TestCaseSource(nameof(_testCases))]
         public void Test_EntityFilterBuilder_BuildWhereEntityFilter(string propertyName, object value, FilterOperator filterOperator, Expression<Func<TestObject, bool>> expression)
         {
             // Arrange
@@ -151,7 +151,7 @@ namespace eQuantic.Linq.Tests.Filter
             var actualSorter = builder.BuildWhereEntityFilter();
 
             // Assert
-            Assert.AreEqual(expectedFilter, actualSorter);
+            Assert.That(actualSorter, Is.EqualTo(expectedFilter));
         }
 
         [Test]
@@ -168,7 +168,7 @@ namespace eQuantic.Linq.Tests.Filter
             var actualSorter = builder.BuildWhereEntityFilter();
 
             // Assert
-            Assert.AreEqual(expected, actualSorter.ToString());
+            Assert.That(actualSorter.ToString(), Is.EqualTo(expected));
         }
 
         [Test]
@@ -185,7 +185,7 @@ namespace eQuantic.Linq.Tests.Filter
             var actualSorter = builder.BuildWhereEntityFilter();
 
             // Assert
-            Assert.AreEqual(expected, actualSorter.ToString());
+            Assert.That(actualSorter.ToString(), Is.EqualTo(expected));
         }
 
         public class TestChildObject
