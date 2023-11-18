@@ -5,6 +5,7 @@ namespace eQuantic.Linq.Casting;
 public interface ICastOptions<out TCastOptions, TEntity> where TCastOptions : ICastOptions<TCastOptions, TEntity>
 {
     TCastOptions Map(string sourceColumnName, Expression<Func<TEntity, object>> destinationColumn);
+    TCastOptions Map(string sourceColumnName, string destinationColumnName);
     TCastOptions Exclude(string sourceColumnName);
     TCastOptions ExcludeUnmapped();
     TCastOptions ThrowUnmapped();
@@ -23,7 +24,13 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
     
     public TCastOptions Map(string sourceColumnName, Expression<Func<TEntity, object>> destinationColumn)
     {
-        Mapping.Add(sourceColumnName, new TColumnMap{ Column = destinationColumn });
+        Mapping.Add(sourceColumnName, new TColumnMap{ ColumnExpression = destinationColumn });
+        return (TCastOptions)this;
+    }
+    
+    public TCastOptions Map(string sourceColumnName, string destinationColumnName)
+    {
+        Mapping.Add(sourceColumnName, new TColumnMap{ ColumnName = destinationColumnName });
         return (TCastOptions)this;
     }
     public TCastOptions Exclude(string sourceColumnName)

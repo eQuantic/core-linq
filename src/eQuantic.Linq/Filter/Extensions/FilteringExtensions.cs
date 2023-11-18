@@ -13,9 +13,9 @@ public static class FilteringExtensions
         var list = new List<IFiltering<TEntity>>();
         var castOptions = new FilteringCastOptions<TEntity>();
         options.Invoke(castOptions);
-            
+
         ThrowUnmapped(filtering, castOptions);
-            
+
         foreach (var filteringItem in filtering)
         {
             list.AddRange(Cast(filteringItem, castOptions));
@@ -23,15 +23,15 @@ public static class FilteringExtensions
 
         return list.ToArray();
     }
-        
+
     public static IFiltering<TEntity>[] Cast<TEntity>(this IFiltering filtering,
         Action<FilteringCastOptions<TEntity>> options)
     {
         var castOptions = new FilteringCastOptions<TEntity>();
         options.Invoke(castOptions);
-            
-        ThrowUnmapped(new []{ filtering }, castOptions);
-            
+
+        ThrowUnmapped(new[] { filtering }, castOptions);
+
         return Cast(filtering, castOptions).ToArray();
     }
 
@@ -48,14 +48,14 @@ public static class FilteringExtensions
         FilteringCastOptions<TEntity> options)
     {
         var list = new List<IFiltering<TEntity>>();
-        
+
         if (filteringItem is CompositeFiltering compositeFiltering)
         {
             var values = compositeFiltering.Values.SelectMany(f => Cast(f, options)).ToArray();
-            list.Add(new CompositeFiltering<TEntity>(compositeFiltering.CompositeOperator,  values));
+            list.Add(new CompositeFiltering<TEntity>(compositeFiltering.CompositeOperator, values));
             return list;
         }
-        
+
         var mapping = options.GetMapping();
         var excludeUnmapped = options.GetExcludeUnmapped();
         var excluded = options.GetExcluded();
@@ -64,17 +64,14 @@ public static class FilteringExtensions
 
         if (excluded.Any(o => filteringItem.ColumnName.Equals(o, StringComparison.InvariantCultureIgnoreCase)))
             return list;
-        
+
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(filteringItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var exp = filteringItem.ColumnName
-                .GetColumnExpression<TEntity>(useColumnFallback &&
-                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
-                .ToExpFunc<TEntity>();
+            var exp = GetExpression<TEntity>(filteringItem.ColumnName, useColumnFallback, columnFallbackApplicability);
 
-            list.Add(new Filtering<TEntity>(exp, 
-                filteringItem.StringValue, 
+            list.Add(new Filtering<TEntity>(exp,
+                filteringItem.StringValue,
                 filteringItem.Operator,
                 columnFallbackApplicability == ColumnFallbackApplicability.ToDestination));
         }
@@ -85,22 +82,41 @@ public static class FilteringExtensions
         }
 
         var map = mapping[filteringItem.ColumnName];
-        
+
         if (map.CustomFiltering != null)
         {
             list.AddRange(map.CustomFiltering(filteringItem));
         }
         else
         {
-            list.Add(new Filtering<TEntity>(
-                map.Column,
-                map.SetValue?.Invoke(filteringItem.StringValue) ?? filteringItem.StringValue,
-                map.Operator ?? filteringItem.Operator));
-        }
+            var exp = map.ColumnExpression;
+            if (exp == null && !string.IsNullOrEmpty(map.ColumnName))
+            {
+                exp = GetExpression<TEntity>(map.ColumnName, useColumnFallback, columnFallbackApplicability);
+            }
             
+            if(exp != null)
+            {
+                list.Add(new Filtering<TEntity>(
+                    exp,
+                    map.SetValue?.Invoke(filteringItem.StringValue) ?? filteringItem.StringValue,
+                    map.Operator ?? filteringItem.Operator));
+            }
+        }
+
         return list;
     }
-        
+    
+    private static Expression<Func<TEntity, object>> GetExpression<TEntity>(
+        string columnName, bool useColumnFallback, ColumnFallbackApplicability columnFallbackApplicability)
+    {
+        var exp = columnName
+            .GetColumnExpression<TEntity>(useColumnFallback &&
+                                          columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+            .ToExpFunc<TEntity>();
+        return exp;
+    }
+
     private static void ThrowUnmapped<TEntity>(IEnumerable<IFiltering> filtering, FilteringCastOptions<TEntity> options)
     {
         var throwUnmapped = options.GetThrowUnmapped();
@@ -110,10 +126,11 @@ public static class FilteringExtensions
             .Select(o => o.ColumnName)
             .Except(mappedColumnNames, StringComparer.InvariantCultureIgnoreCase)
             .ToArray();
-            
+
         if (throwUnmapped && unmappedColumnNames.Any())
         {
-            throw new InvalidCastException($"The following columns are unknown: {string.Join(", ", unmappedColumnNames)}");
+            throw new InvalidCastException(
+                $"The following columns are unknown: {string.Join(", ", unmappedColumnNames)}");
         }
     }
 }

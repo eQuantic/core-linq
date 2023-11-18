@@ -57,10 +57,7 @@ public static class SortingExtensions
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var exp = sortingItem.ColumnName
-                .GetColumnExpression<TEntity>(useColumnFallback &&
-                                              columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
-                .ToExpFunc<TEntity>();
+            var exp = GetExpression<TEntity>(sortingItem.ColumnName, useColumnFallback, columnFallbackApplicability);
             list.Add(new Sorting<TEntity>(exp, sortingItem.SortDirection,
                 columnFallbackApplicability == ColumnFallbackApplicability.ToDestination));
         }
@@ -78,12 +75,31 @@ public static class SortingExtensions
         }
         else
         {
-            list.Add(new Sorting<TEntity>(
-                map.Column,
-                map.Direction ?? sortingItem.SortDirection));
+            var exp = map.ColumnExpression;
+            if (exp == null && !string.IsNullOrEmpty(map.ColumnName))
+            {
+                exp = GetExpression<TEntity>(map.ColumnName, useColumnFallback, columnFallbackApplicability);
+            }
+
+            if (exp != null)
+            {
+                list.Add(new Sorting<TEntity>(
+                    exp,
+                    map.Direction ?? sortingItem.SortDirection));
+            }
         }
 
         return list;
+    }
+
+    private static Expression<Func<TEntity, object>> GetExpression<TEntity>(
+        string columnName, bool useColumnFallback, ColumnFallbackApplicability columnFallbackApplicability)
+    {
+        var exp = columnName
+            .GetColumnExpression<TEntity>(useColumnFallback &&
+                                          columnFallbackApplicability == ColumnFallbackApplicability.FromSource)
+            .ToExpFunc<TEntity>();
+        return exp;
     }
 
     private static void ThrowUnmapped<TEntity>(IEnumerable<ISorting> sorting, SortingCastOptions<TEntity> options)
