@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
 namespace eQuantic.Linq.Expressions;
@@ -7,10 +8,14 @@ internal static class EntityBuilder
 {
     public static List<PropertyInfo> GetProperties<T>(string propertyName, bool useColumnFallback = false)
     {
-        var properties = new List<PropertyInfo>();
-
         var declaringType = typeof(T);
+        return GetProperties(declaringType, propertyName, useColumnFallback);
+    }
 
+    public static List<PropertyInfo> GetProperties(Type declaringType, string propertyName, bool useColumnFallback = false)
+    {
+        var properties = new List<PropertyInfo>();
+        
         foreach (var name in propertyName.Split('.'))
         {
             var property = GetPropertyByName(propertyName, declaringType, name, useColumnFallback);
