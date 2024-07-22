@@ -39,11 +39,18 @@ public static class EntityFilter<TEntity>
     /// <returns></returns>
     public static IEntityFilter<TEntity> Where(params IFiltering[] filters)
     {
+        return filters is [CompositeFiltering<TEntity> compositeFiltering] ? 
+            Where(compositeFiltering.Values, compositeFiltering.CompositeOperator) : 
+            Where(filters, CompositeOperator.And);
+    }
+
+    private static IEntityFilter<TEntity> Where(IFiltering[] filters, CompositeOperator compositeOperator)
+    {
         IEntityFilter<TEntity> entityFilter = null;
         foreach (var filtering in filters)
         {
             var builder = new EntityFilterBuilder<TEntity>(filtering.ColumnName, filtering.StringValue, filtering.Operator);
-            entityFilter = builder.BuildWhereEntityFilter(entityFilter);
+            entityFilter = builder.BuildWhereEntityFilter(entityFilter, compositeOperator);
         }
         return entityFilter;
     }
