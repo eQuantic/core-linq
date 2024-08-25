@@ -39,19 +39,37 @@ public static class EntityFilter<TEntity>
     /// <returns></returns>
     public static IEntityFilter<TEntity> Where(params IFiltering[] filters)
     {
-        return filters is [CompositeFiltering<TEntity> compositeFiltering] ? 
-            Where(compositeFiltering.Values, compositeFiltering.CompositeOperator) : 
-            Where(filters, CompositeOperator.And);
+        return filters is [CompositeFiltering<TEntity> compositeFiltering]
+            ? Where(compositeFiltering.Values, compositeFiltering.CompositeOperator)
+            : Where(filters, CompositeOperator.And);
     }
 
     private static IEntityFilter<TEntity> Where(IFiltering[] filters, CompositeOperator compositeOperator)
     {
-        IEntityFilter<TEntity> entityFilter = null;
+        IEntityFilter<TEntity>? entityFilter = null;
         foreach (var filtering in filters)
         {
-            var builder = new EntityFilterBuilder<TEntity>(filtering.ColumnName, filtering.StringValue, filtering.Operator);
+            if (filtering is CompositeFiltering compositeFiltering)
+            {
+                if (compositeFiltering.Values.Length == 1)
+                {
+                    var f = compositeFiltering.Values.First();
+                    var compositeBuilder = new EntityFilterBuilder<TEntity>(f.ColumnName, f.StringValue, f.Operator);
+                    entityFilter = compositeBuilder.BuildWhereEntityFilter(entityFilter, compositeOperator);
+                    continue;
+                }
+
+                entityFilter = EntityFilterBuilder<TEntity>.BuildWhereEntityFilter(entityFilter,
+                    Where(compositeFiltering.Values, compositeFiltering.CompositeOperator).GetExpression(),
+                    compositeOperator);
+                continue;
+            }
+
+            var builder =
+                new EntityFilterBuilder<TEntity>(filtering.ColumnName, filtering.StringValue, filtering.Operator);
             entityFilter = builder.BuildWhereEntityFilter(entityFilter, compositeOperator);
         }
+
         return entityFilter;
     }
 
