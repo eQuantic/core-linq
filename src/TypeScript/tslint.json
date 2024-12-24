@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier"
+  ],
+  "rules": {
+    "array-type": false,
+    "ban-types": false,
+    "callable-types": false,
+    "no-console": false,
+    "no-namespace": false,
+    "radix": false,
+    "triple-equals": false,
+    "class-name": false
+  }
+}

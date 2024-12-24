@@ -3,11 +3,10 @@ name: eQuantic Linq
 on: [push]
 
 jobs:
-  build:
+  buildNuget:
     runs-on: windows-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v2
         with:
@@ -16,3 +15,20 @@ jobs:
         run: dotnet build --configuration Release
       - name: Push package into Nuget.org
         run: dotnet nuget push **/*.nupkg --skip-duplicate -k ${{secrets.nuget_key}} -s https://api.nuget.org/v3/index.json
+  buildNpm:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./src/TypeScript
+    steps:
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm init --scope=equantic
+      - run: npm ci
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

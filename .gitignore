@@ -362,3 +362,7 @@ healthchecksdb
 !artifacts/readme.txt
 !build/*.targets
 !build/*.props
+
+src/TypeScript/lib
+
+yarn.lock

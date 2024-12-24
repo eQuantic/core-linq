@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "jsx": "react",
+    "target": "ES2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "disableSizeLimit": true,
+    "esModuleInterop": true,
+    "outDir": "./lib",
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "apexcharts": [
+        "./node_modules/apexcharts-clevision"
+      ],
+      "apexcharts/*": [
+        "./node_modules/apexcharts-clevision/*"
+      ],
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/__tests__/*", "src/stories"]
+}
