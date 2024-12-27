@@ -1,6 +1,6 @@
 {
   "name": "@equantic/linq",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "eQuantic Linq for JavaScript",
   "keywords": [
     "eQuantic",
@@ -37,7 +37,6 @@
     "qs": "^6.13.1"
   },
   "devDependencies": {
-    "@types/flat": "^5.0.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
     "@types/qs": "^6.9.17",
