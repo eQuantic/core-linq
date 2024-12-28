@@ -1,6 +1,6 @@
 {
   "name": "@equantic/linq",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "eQuantic Linq for JavaScript",
   "keywords": [
     "eQuantic",
@@ -16,7 +16,6 @@
   },
   "license": "ISC",
   "author": "eQuantic Tech",
-  "type": "commonjs",
   "main": "./",
   "types": "./",
   "directories": {
