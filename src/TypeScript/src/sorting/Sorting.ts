@@ -1,5 +1,5 @@
-import { FieldPath } from '../base';
-import { ISorting, SortingDirection } from './base';
+import { FieldPath } from '../base.js';
+import { ISorting, SortingDirection } from './base.js';
 
 export class Sorting<TData extends object> implements ISorting<TData> {
   constructor(public column: FieldPath<TData>, public direction: SortingDirection = 'asc') {}

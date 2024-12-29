@@ -1,5 +1,5 @@
-import { CompositeFiltering } from './CompositeFiltering';
-import { IFiltering, parseComposite } from './base';
+import { CompositeFiltering } from './CompositeFiltering.js';
+import { IFiltering, parseComposite } from './base.js';
 
 export class CompositeFilteringParser {
   public static parse<TData extends object = any>(exp: string, result: IFiltering<TData>[]): boolean {

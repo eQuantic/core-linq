@@ -1,5 +1,5 @@
-import { CompositeFiltering } from './CompositeFiltering';
-import type { IFiltering } from './base';
+import { CompositeFiltering } from './CompositeFiltering.js';
+import type { IFiltering } from './base.js';
 
 export class OrFiltering<TData extends object = any> extends CompositeFiltering<TData> {
   constructor(values?: IFiltering<TData>[] | string[]);

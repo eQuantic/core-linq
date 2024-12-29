@@ -1,6 +1,6 @@
-import { splitArguments } from '../funcs';
-import type { FieldPath } from '../base';
-import { CompositeOperator } from './CompositeOperator';
+import { splitArguments } from '../funcs/index.js';
+import type { FieldPath } from '../base.js';
+import { CompositeOperator } from './CompositeOperator.js';
 
 export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'ct' | 'in' | 'sw' | 'ew';
 

@@ -1,4 +1,4 @@
-import { FieldPath } from '../base';
+import { FieldPath } from '../base.js';
 
 export type SortingDirection = 'asc' | 'desc';
 

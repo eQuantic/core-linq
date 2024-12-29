@@ -1,7 +1,7 @@
-import { FieldPath } from '../base';
-import { ISorting, SortingDirection } from './base';
-import { Sorting } from './Sorting';
-import { SortingCollection } from './SortingCollection';
+import { FieldPath } from '../base.js';
+import { ISorting, SortingDirection } from './base.js';
+import { Sorting } from './Sorting.js';
+import { SortingCollection } from './SortingCollection.js';
 
 export class SortingParser {
   public static parse<TData extends object = any>(querySorter?: string | string[]): SortingCollection<TData> {

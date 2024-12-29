@@ -1,4 +1,4 @@
-import { IFiltering } from './base';
+import { IFiltering } from './base.js';
 
 export class FilteringCollection<TData extends object = any> extends Array<IFiltering<TData>> {
   constructor(items: IFiltering<TData>[] = []) {

@@ -1,7 +1,7 @@
-import { CompositeFilteringParser } from './CompositeFilteringParser';
-import { CompositeOperator } from './CompositeOperator';
-import { Filtering } from './Filtering';
-import { IFiltering, parseExpression } from './base';
+import { CompositeFilteringParser } from './CompositeFilteringParser.js';
+import { CompositeOperator } from './CompositeOperator.js';
+import { Filtering } from './Filtering.js';
+import { IFiltering, parseExpression } from './base.js';
 
 export class CompositeFiltering<TData extends object = any> extends Filtering<TData> {
   values: IFiltering<TData>[];

@@ -1,5 +1,5 @@
-import type { FieldPath } from '../base';
-import { FilterOperator, IFiltering } from './base';
+import type { FieldPath } from '../base.js';
+import { FilterOperator, IFiltering } from './base.js';
 
 export class Filtering<TData extends object = any> implements IFiltering<TData> {
   column: FieldPath<TData>;

@@ -1,14 +1,14 @@
 import QueryString from 'qs';
 import {flatten} from 'flat';
-import { Filtering } from './Filtering';
-import { FilteringCollection } from './FilteringCollection';
-import type { FieldPath } from '../base';
-import { OrFiltering } from './OrFiltering';
-import { CompositeFiltering } from './CompositeFiltering';
+import { Filtering } from './Filtering.js';
+import { FilteringCollection } from './FilteringCollection.js';
+import type { FieldPath } from '../base.js';
+import { OrFiltering } from './OrFiltering.js';
+import { CompositeFiltering } from './CompositeFiltering.js';
 
-import type { IFiltering, IFilteringInfo } from './base';
-import { parseExpression } from './base';
-import { CompositeFilteringParser } from './CompositeFilteringParser';
+import type { IFiltering, IFilteringInfo } from './base.js';
+import { parseExpression } from './base.js';
+import { CompositeFilteringParser } from './CompositeFilteringParser.js';
 
 export interface IFilteringParserOptions<TData extends object = any, TDestination extends object = TData> {
   consideringNullValues?: boolean;

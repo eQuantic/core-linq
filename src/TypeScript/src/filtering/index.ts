@@ -1,14 +1,14 @@
-import { AndFiltering } from './AndFiltering';
-import { CF, CompositeFiltering } from './CompositeFiltering';
-import { CompositeFilteringParser } from './CompositeFilteringParser';
-import { F, Filtering } from './Filtering';
-import { FilteringCollection } from './FilteringCollection';
-import { FilteringParser } from './FilteringParser';
-import { OrFiltering } from './OrFiltering';
+import { AndFiltering } from './AndFiltering.js';
+import { CF, CompositeFiltering } from './CompositeFiltering.js';
+import { CompositeFilteringParser } from './CompositeFilteringParser.js';
+import { F, Filtering } from './Filtering.js';
+import { FilteringCollection } from './FilteringCollection.js';
+import { FilteringParser } from './FilteringParser.js';
+import { OrFiltering } from './OrFiltering.js';
 
-import type { CompositeOperator } from './CompositeOperator';
-import type { FilterOperator, IFiltering, IFilteringInfo } from './base';
-import type { IFilteringConverterOptions, IFilteringParserOptions } from './FilteringParser';
+import type { CompositeOperator } from './CompositeOperator.js';
+import type { FilterOperator, IFiltering, IFilteringInfo } from './base.js';
+import type { IFilteringConverterOptions, IFilteringParserOptions } from './FilteringParser.js';
 
 export type {
   CompositeOperator,

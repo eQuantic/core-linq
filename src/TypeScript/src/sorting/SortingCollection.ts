@@ -1,4 +1,4 @@
-import { ISorting } from './base';
+import { ISorting } from './base.js';
 
 export class SortingCollection<TData extends object = any> extends Array<ISorting<TData>> {
   constructor(items: ISorting<TData>[] = []) {

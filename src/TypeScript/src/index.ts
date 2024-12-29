@@ -20,12 +20,12 @@ import type {
   FieldPathByValue,
   IndexedObject,
   Serializable,
-} from './base';
+} from './base.js';
 
-import { splitArguments } from './funcs';
+import { splitArguments } from './funcs/index.js';
 
-import * as filtering from './filtering';
-import * as sorting from './sorting';
+import * as filtering from './filtering/index.js';
+import * as sorting from './sorting/index.js';
 
 // types and interfaces
 export type {

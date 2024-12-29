@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "lib": ["es2022", "dom"],
+    "target": "es2022",
+    "module": "NodeNext",
+    "moduleDetection": "force",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
