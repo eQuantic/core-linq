@@ -1,5 +1,5 @@
 import { splitArguments } from '../funcs/index.js';
-import type { FieldPath } from '../base.js';
+import type { FieldPath, FieldPathValue } from '../base.js';
 import { CompositeOperator } from './CompositeOperator.js';
 
 export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'ct' | 'in' | 'sw' | 'ew';
@@ -9,8 +9,8 @@ export interface IFilteringInfo<TData extends object = any> {
   operator?: FilterOperator;
 }
 
-export interface IFiltering<TData extends object> extends IFilteringInfo<TData> {
-  value: any;
+export interface IFiltering<TData extends object, TColumn extends FieldPath<TData> = FieldPath<TData>> extends IFilteringInfo<TData> {
+  value: FieldPathValue<TData, TColumn>;
 }
 
 export interface ICompositeFiltering {
@@ -20,13 +20,13 @@ export interface ICompositeFiltering {
 
 export const funcRegex = /(\b[^()]+)\((.*)\)$/;
 
-export function parseExpression<TData extends object = any>(exp: string): IFiltering<TData> {
+export function parseExpression<TData extends object = any>(exp: string): IFiltering<TData, FieldPath<TData>> {
   const arr = exp.split(':');
   const [prop, ...rest] = arr;
-  const propertyName = prop.trim();
+  const propertyName = prop.trim() as FieldPath<TData>;
 
   let operator: FilterOperator = 'eq';
-  let value = '';
+  let value: string = '';
 
   if (rest.length > 0) {
     const v = rest.join(':');
@@ -36,12 +36,16 @@ export function parseExpression<TData extends object = any>(exp: string): IFilte
       value = match[2];
     } else value = v;
   }
-  return { column: propertyName as any, value, operator };
+  return { 
+    column: propertyName, 
+    value: value as FieldPathValue<TData, typeof propertyName>, 
+    operator 
+  };
 }
 
 export function parseComposite<TData extends object = any>(
   exp: string,
-  result: IFiltering<TData>[],
+  result: IFiltering<TData, FieldPath<TData>>[],
 ): ICompositeFiltering | null {
   const compositeMatch = exp.match(funcRegex);
   if (compositeMatch == null || compositeMatch.length <= 1 || compositeMatch[1].indexOf(':') >= 0) return null;

@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
+using System.Text;
+using eQuantic.Linq.Caching;
 using eQuantic.Linq.Specification;
 
 namespace eQuantic.Linq.Filter;
@@ -11,15 +14,23 @@ namespace eQuantic.Linq.Filter;
 [DebuggerDisplay("EntityFilter ( where {ToString()} )")]
 internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
 {
+    private static readonly IExpressionCache Cache = new ExpressionCache();
+    
     private readonly IEntityFilter<TEntity>? baseFilter;
     private readonly CompositeOperator compositeOperator = CompositeOperator.And;
     private readonly Expression<Func<TEntity, bool>> predicate;
+    private readonly Func<TEntity, bool>? compiledPredicate;
+    private readonly string? cacheKey;
 
     /// <summary>Initializes a new instance of the <see cref="WhereEntityFilter{TEntity}"/> class.</summary>
     /// <param name="predicate">The predicate.</param>
     public WhereEntityFilter(Expression<Func<TEntity, bool>> predicate)
     {
         this.predicate = predicate;
+        this.cacheKey = GenerateStableCacheKey(predicate);
+        
+        // Cache compiled predicate for performance (eager compilation)
+        this.compiledPredicate = Cache.GetOrCreate(cacheKey, () => predicate);
     }
 
     /// <summary>Initializes a new instance of the <see cref="WhereEntityFilter{TEntity}"/> class.</summary>
@@ -32,9 +43,13 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
         this.baseFilter = baseFilter;
         this.predicate = predicate;
         this.compositeOperator = compositeOperator;
+        
+        // For composite filters, we still cache the predicate part
+        this.cacheKey = GenerateStableCacheKey(predicate);
+        this.compiledPredicate = Cache.GetOrCreate(cacheKey, () => predicate);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is not WhereEntityFilter<TEntity> filter)
         {
@@ -49,7 +64,12 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
     /// <returns>A filtered collection.</returns>
     public IQueryable<TEntity> Filter(IQueryable<TEntity> collection)
     {
-        return baseFilter == null ? collection.Where(predicate) : baseFilter.Filter(collection).Where(predicate);
+        // For now, always use the expression since we're working with IQueryable
+        // The compiled predicate optimization is primarily for the async scenarios
+        // where we convert to arrays/enumerables
+        return baseFilter == null 
+            ? collection.Where(predicate) 
+            : baseFilter.Filter(collection).Where(predicate);
     }
 
     /// <summary>
@@ -87,5 +107,58 @@ internal sealed class WhereEntityFilter<TEntity> : IEntityFilter<TEntity>
         }
 
         return predicate.ToString();
+    }
+
+    /// <summary>
+    /// Generates a stable cache key based on expression structure, not string representation
+    /// </summary>
+    private static string GenerateStableCacheKey(Expression expression)
+    {
+        var visitor = new ExpressionHashVisitor();
+        visitor.Visit(expression);
+        return $"SyncFilter_{typeof(TEntity).Name}_{visitor.GetHash()}";
+    }
+
+    /// <summary>
+    /// Gets the shared expression cache instance for testing/monitoring
+    /// </summary>
+    internal static IExpressionCache ExpressionCache => Cache;
+
+    /// <summary>
+    /// Visitor that generates stable hash based on Expression structure, not string representation
+    /// </summary>
+    private sealed class ExpressionHashVisitor : ExpressionVisitor
+    {
+        private readonly StringBuilder _hashBuilder = new();
+
+        public string GetHash()
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(_hashBuilder.ToString());
+            var hashBytes = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hashBytes)[..16]; // First 16 chars
+        }
+
+        public override Expression? Visit(Expression? node)
+        {
+            if (node != null)
+            {
+                _hashBuilder.Append(node.NodeType.ToString());
+                _hashBuilder.Append(node.Type.Name);
+            }
+            return base.Visit(node);
+        }
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            _hashBuilder.Append(node.Member.Name);
+            return base.VisitMember(node);
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            _hashBuilder.Append(node.Value?.ToString() ?? "null");
+            return base.VisitConstant(node);
+        }
     }
 }

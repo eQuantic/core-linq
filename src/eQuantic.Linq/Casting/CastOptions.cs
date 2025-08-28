@@ -15,8 +15,8 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
     where TCastOptions : CastOptions<TCastOptions, TColumnMap, TEntity>
     where TColumnMap : ColumnMap<TEntity>, new()
 {
-    protected readonly Dictionary<string, TColumnMap> Mapping = new Dictionary<string, TColumnMap>(StringComparer.InvariantCultureIgnoreCase);
-    private readonly HashSet<string> excluded = new();
+    protected readonly Dictionary<string, TColumnMap> Mapping = new(StringComparer.InvariantCultureIgnoreCase);
+    private readonly HashSet<string> excluded = new(StringComparer.InvariantCultureIgnoreCase);
     private bool excludeUnmapped;
     private bool throwUnmapped;
     private bool useColumnFallback;
@@ -57,6 +57,7 @@ public class CastOptions<TCastOptions, TColumnMap, TEntity> : ICastOptions<TCast
         return (TCastOptions)this;
     }
     
+    // Modern property-style internal accessors
     internal Dictionary<string, TColumnMap> GetMapping() => Mapping;
     internal HashSet<string> GetExcluded() => excluded;
     internal bool GetExcludeUnmapped() => excludeUnmapped;

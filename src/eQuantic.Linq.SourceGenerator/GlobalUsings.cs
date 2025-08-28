@@ -1,0 +1,1 @@
+global using eQuantic.Linq.SourceGenerator;

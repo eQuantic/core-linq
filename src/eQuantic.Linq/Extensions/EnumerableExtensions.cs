@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using eQuantic.Linq.Casting;
 
 namespace eQuantic.Linq.Extensions;
 
@@ -9,38 +10,18 @@ public static class EnumerableExtensions
 {
     private static readonly Type EnumerableType = typeof(Enumerable);
 
-    /// <summary>
-    /// Distinct by criteria.
-    /// </summary>
-    /// <typeparam name="TSource">The type of the source.</typeparam>
-    /// <typeparam name="TKey">The type of the key.</typeparam>
-    /// <param name="source">The source.</param>
-    /// <param name="keySelector">The key selector.</param>
-    /// <returns></returns>
-    public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
-    {
-        var knownKeys = new HashSet<TKey>();
-        foreach (var element in source)
-        {
-            if (knownKeys.Add(keySelector(element)))
-            {
-                yield return element;
-            }
-        }
-    }
 
     /// <summary>
-    /// Invoke an action for each element
+    /// Invoke an action for each element using modern null checking.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="enumeration">The enumeration.</param>
-    /// <param name="action">The action.</param>
+    /// <typeparam name="T">The type of elements in the enumeration.</typeparam>
+    /// <param name="enumeration">The enumeration to iterate over.</param>
+    /// <param name="action">The action to invoke for each element.</param>
     public static void ForEach<T>(this IEnumerable<T> enumeration, Action<T> action)
     {
-        if (enumeration == null || action == null)
-        {
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(enumeration);
+        ArgumentNullException.ThrowIfNull(action);
+
         foreach (var item in enumeration)
         {
             action(item);
@@ -48,34 +29,46 @@ public static class EnumerableExtensions
     }
 
     /// <summary>
-    /// Cast as type
+    /// Cast as type using modern C# patterns.
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="targetType"></param>
-    /// <returns></returns>
+    /// <param name="source">The source enumerable to cast.</param>
+    /// <param name="targetType">The target type to cast to.</param>
+    /// <returns>An enumerable of the target type.</returns>
     public static IEnumerable CastAsType(this IEnumerable source, Type targetType)
     {
-        var castMethod = EnumerableType.GetMethod(nameof(Enumerable.Cast)).MakeGenericMethod(targetType);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(targetType);
 
-        return (IEnumerable)ExceptionHandlingInvoke(castMethod, null, new object[] { source });
+        var castMethod = CastingCache.GetOrCacheMethod(EnumerableType, nameof(Enumerable.Cast), targetType);
+        return castMethod switch
+        {
+            not null => (IEnumerable)ExceptionHandlingInvoke(castMethod, null, [source]),
+            null => throw new InvalidOperationException($"Unable to create cast method for type {targetType.Name}")
+        };
     }
 
     /// <summary>
-    /// To list of type
+    /// Convert enumerable to a list of specified type using modern patterns.
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="targetType"></param>
-    /// <returns></returns>
+    /// <param name="source">The source enumerable to convert.</param>
+    /// <param name="targetType">The target type for the list elements.</param>
+    /// <returns>A list of the target type.</returns>
     public static IList ToListOfType(this IEnumerable source, Type targetType)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(targetType);
+
         var enumerable = CastAsType(source, targetType);
+        var listMethod = CastingCache.GetOrCacheMethod(EnumerableType, nameof(Enumerable.ToList), targetType);
 
-        var listMethod = EnumerableType.GetMethod(nameof(Enumerable.ToList)).MakeGenericMethod(targetType);
-
-        return (IList)ExceptionHandlingInvoke(listMethod, null, new object[] { enumerable });
+        return listMethod switch
+        {
+            not null => (IList)ExceptionHandlingInvoke(listMethod, null, [enumerable]),
+            null => throw new InvalidOperationException($"Unable to create ToList method for type {targetType.Name}")
+        };
     }
 
-    private static object ExceptionHandlingInvoke(System.Reflection.MethodInfo methodInfo, object obj, object[] parameters)
+    private static object ExceptionHandlingInvoke(System.Reflection.MethodInfo methodInfo, object? obj, object[] parameters)
     {
         try
         {

@@ -10,7 +10,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
       - name: Build eQuantic.Linq Library
         run: dotnet build --configuration Release
       - name: Push package into Nuget.org

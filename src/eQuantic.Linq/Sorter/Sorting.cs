@@ -53,11 +53,14 @@ public class Sorting : ISorting
         }
 
         var columnName = columnNameAndValue[0];
-        var value = columnNameAndValue[1].Equals("desc", StringComparison.InvariantCultureIgnoreCase) ? 
-            SortDirection.Descending : 
-            SortDirection.Ascending;
+        var direction = columnNameAndValue[1].ToLowerInvariant() switch
+        {
+            "desc" or "descending" => SortDirection.Descending,
+            "asc" or "ascending" => SortDirection.Ascending,
+            _ => SortDirection.Ascending // Default to ascending for any other value
+        };
 
-        return new Sorting(columnName, value);
+        return new Sorting(columnName, direction);
     }
 
     public static bool TryParse(string query, out Sorting sorting)
@@ -79,11 +82,24 @@ public class Sorting : ISorting
         return ToString(DefaultFormat, null);
     }
 
+    /// <summary>
+    /// Formats the sorting using modern switch expression for direction conversion.
+    /// </summary>
+    /// <param name="format">The format string to use.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>Formatted string representation of the sorting.</returns>
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         format ??= DefaultFormat;
         formatProvider ??= CultureInfo.InvariantCulture;
-        var directionString = SortDirection == SortDirection.Ascending ? "asc" : "desc";
+        
+        var directionString = SortDirection switch
+        {
+            SortDirection.Ascending => "asc",
+            SortDirection.Descending => "desc",
+            _ => "asc" // Default fallback
+        };
+        
         return string.Format(formatProvider, format, ColumnName, directionString);
     }
 }

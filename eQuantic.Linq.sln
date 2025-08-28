@@ -1,5 +1,6 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eQuantic.Linq", "src\eQuantic.Linq\eQuantic.Linq.csproj", "{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{BC458CA8-0672-4668-97A7-32A33BFD42D6}"
@@ -8,7 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{BC458CA8-0
 		README.md = README.md
 		NuGet.Config = NuGet.Config
 		LICENSE = LICENSE
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		CLAUDE.md = CLAUDE.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E18DEDAB-F88D-414C-BF73-86B27DF69011}"
@@ -16,6 +19,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C4CC37BE-E847-4002-B322-6F2C7D573977}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eQuantic.Linq.Tests", "test\eQuantic.Linq.Tests\eQuantic.Linq.Tests.csproj", "{FB22B381-EC0D-452C-AE63-8D913BB39F63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eQuantic.Linq.SourceGenerator", "src\eQuantic.Linq.SourceGenerator\eQuantic.Linq.SourceGenerator.csproj", "{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{7D4BE7D2-0CC4-4C11-847C-6E261D016319}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGeneratorExample", "examples\SourceGeneratorExample\SourceGeneratorExample.csproj", "{5542A772-4B1C-4C39-B054-064FC84F8695}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,9 +40,19 @@ Global
 		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB22B381-EC0D-452C-AE63-8D913BB39F63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5542A772-4B1C-4C39-B054-064FC84F8695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5542A772-4B1C-4C39-B054-064FC84F8695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5542A772-4B1C-4C39-B054-064FC84F8695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5542A772-4B1C-4C39-B054-064FC84F8695}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8} = {E18DEDAB-F88D-414C-BF73-86B27DF69011}
 		{FB22B381-EC0D-452C-AE63-8D913BB39F63} = {C4CC37BE-E847-4002-B322-6F2C7D573977}
+		{9A29A7FD-557C-43C2-BE6D-C63C1A01F01B} = {E18DEDAB-F88D-414C-BF73-86B27DF69011}
+		{5542A772-4B1C-4C39-B054-064FC84F8695} = {7D4BE7D2-0CC4-4C11-847C-6E261D016319}
 	EndGlobalSection
 EndGlobal

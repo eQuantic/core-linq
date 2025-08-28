@@ -24,22 +24,42 @@ public static class CompositeOperatorValues
         {CompositeOperator.Or, "or"}
     });
 
-    public static bool Exists(string compositeOperator)
-    {
-        return Values.Any(kv => kv.Value.Equals(compositeOperator, StringComparison.InvariantCultureIgnoreCase));
-    }
+    /// <summary>
+    /// Checks if composite operator string exists using pattern matching.
+    /// </summary>
+    /// <param name="compositeOperator">The composite operator string to check.</param>
+    /// <returns>True if exists, false otherwise.</returns>
+    public static bool Exists(string compositeOperator) => 
+        compositeOperator?.ToLowerInvariant() switch
+        {
+            "and" or "or" => true,
+            _ => false
+        };
 
-    public static string GetOperator(CompositeOperator compositeOperator)
+    /// <summary>
+    /// Converts CompositeOperator enum to string representation using switch expression.
+    /// </summary>
+    /// <param name="compositeOperator">The composite operator enum.</param>
+    /// <returns>String representation of the composite operator.</returns>
+    public static string GetOperator(CompositeOperator compositeOperator) => compositeOperator switch
     {
-        return Values[compositeOperator];
-    }
+        CompositeOperator.And => "and",
+        CompositeOperator.Or => "or",
+        _ => throw new ArgumentOutOfRangeException(nameof(compositeOperator), compositeOperator, "Unknown composite operator")
+    };
 
-    public static CompositeOperator? GetOperator(string compositeOperator)
-    {
-        if (!Exists(compositeOperator)) return null;
-
-        return Values.FirstOrDefault(kv => kv.Value.Equals(compositeOperator, StringComparison.InvariantCultureIgnoreCase)).Key;
-    }
+    /// <summary>
+    /// Converts string representation to CompositeOperator enum using switch expression.
+    /// </summary>
+    /// <param name="compositeOperator">String representation of the composite operator.</param>
+    /// <returns>CompositeOperator enum value or null if invalid.</returns>
+    public static CompositeOperator? GetOperator(string compositeOperator) => 
+        compositeOperator?.ToLowerInvariant() switch
+        {
+            "and" => CompositeOperator.And,
+            "or" => CompositeOperator.Or,
+            _ => null
+        };
 }
 
 public static class FilterOperatorValues
@@ -58,21 +78,45 @@ public static class FilterOperatorValues
         {FilterOperator.LessThanOrEqual, "lte"}
     });
 
-    public static string GetOperator(FilterOperator filterOperator)
+    /// <summary>
+    /// Converts FilterOperator enum to string representation using switch expression.
+    /// </summary>
+    /// <param name="filterOperator">The filter operator enum.</param>
+    /// <returns>String representation of the operator.</returns>
+    public static string GetOperator(FilterOperator filterOperator) => filterOperator switch
     {
-        return Values[filterOperator];
-    }
+        FilterOperator.Equal => "eq",
+        FilterOperator.NotEqual => "neq",
+        FilterOperator.Contains => "ct",
+        FilterOperator.NotContains => "nct",
+        FilterOperator.StartsWith => "sw",
+        FilterOperator.EndsWith => "ew",
+        FilterOperator.GreaterThan => "gt",
+        FilterOperator.GreaterThanOrEqual => "gte",
+        FilterOperator.LessThan => "lt",
+        FilterOperator.LessThanOrEqual => "lte",
+        _ => throw new ArgumentOutOfRangeException(nameof(filterOperator), filterOperator, "Unknown filter operator")
+    };
 
-    public static FilterOperator GetOperator(string filterOperator)
-    {
-        Func<KeyValuePair<FilterOperator, string>, bool> exp = kv =>
-            kv.Value.Equals(filterOperator, StringComparison.InvariantCultureIgnoreCase);
-
-        if (!Values.Any(exp))
+    /// <summary>
+    /// Converts string representation to FilterOperator enum using switch expression.
+    /// </summary>
+    /// <param name="filterOperator">String representation of the operator.</param>
+    /// <returns>FilterOperator enum value.</returns>
+    /// <exception cref="FormatException">Thrown when the operator string is invalid.</exception>
+    public static FilterOperator GetOperator(string filterOperator) => 
+        filterOperator?.ToLowerInvariant() switch
         {
-            throw new FormatException($"Operator '{filterOperator}' is invalid.");
-        }
-            
-        return Values.FirstOrDefault(exp).Key;
-    }
+            "eq" => FilterOperator.Equal,
+            "neq" => FilterOperator.NotEqual,
+            "ct" => FilterOperator.Contains,
+            "nct" => FilterOperator.NotContains,
+            "sw" => FilterOperator.StartsWith,
+            "ew" => FilterOperator.EndsWith,
+            "gt" => FilterOperator.GreaterThan,
+            "gte" => FilterOperator.GreaterThanOrEqual,
+            "lt" => FilterOperator.LessThan,
+            "lte" => FilterOperator.LessThanOrEqual,
+            _ => throw new FormatException($"Operator '{filterOperator}' is invalid.")
+        };
 }

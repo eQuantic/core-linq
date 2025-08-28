@@ -10,12 +10,12 @@ public static class FilteringParser
     /// <summary>
     /// The list
     /// </summary>
-    private static readonly Type[] ValidListTypes = new Type[] {
+    private static readonly Type[] ValidListTypes = [
         typeof(IEnumerable<>),
         typeof(ICollection<>),
         typeof(IList<>),
         typeof(List<>)
-    };
+    ];
 
     /// <summary>
     /// Parses the values

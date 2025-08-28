@@ -122,7 +122,7 @@ public class Filtering : IFiltering, IFormattable
         return this.ToString(DefaultFormat, null);
     }
 
-    public string ToString(string format, IFormatProvider formatProvider)
+    public string ToString(string? format, IFormatProvider? formatProvider)
     {
         format ??= DefaultFormat;
         formatProvider ??= CultureInfo.InvariantCulture;

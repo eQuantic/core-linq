@@ -14,7 +14,7 @@ internal class OrderBySorter<T, TKey> : IEntitySorter<T>
         this.direction = direction;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (!(obj is OrderBySorter<T, TKey> sorter))
         {

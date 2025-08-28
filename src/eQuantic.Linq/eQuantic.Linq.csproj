@@ -2,15 +2,15 @@
 
     <PropertyGroup>
         <Description>eQuantic Linq Library</Description>
-        <Copyright>2017</Copyright>
+        <Copyright>2017-2024</Copyright>
         <AssemblyTitle>eQuantic.Linq</AssemblyTitle>
-        <Version>1.3.4.0</Version>
+        <Version>2.0.0.0</Version>
         <Authors>eQuantic Systems</Authors>
-        <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
         <AssemblyName>eQuantic.Linq</AssemblyName>
         <PackageId>eQuantic.Linq</PackageId>
         <PackageTags>eQuantic;Linq;Library</PackageTags>
-        <PackageReleaseNotes>Customed solutions for filterings, sortings and specification pattern</PackageReleaseNotes>
+        <PackageReleaseNotes>v2.0.0: Major update with modern .NET 6/8/9 support, enhanced performance with expression caching, fluent query API, async support, and breaking changes. See CHANGELOG.md for migration guide.</PackageReleaseNotes>
         <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
         <PackageOutputPath>../artifacts/</PackageOutputPath>
         <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -23,8 +23,8 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <AssemblyVersion>1.3.4.0</AssemblyVersion>
-        <FileVersion>1.3.4.0</FileVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <FileVersion>2.0.0.0</FileVersion>
         <PackageIcon>Icon.png</PackageIcon>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -42,7 +42,7 @@
     <ItemGroup>
         <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(AssemblyName).Tests</_Parameter1>

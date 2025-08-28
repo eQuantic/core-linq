@@ -9,7 +9,7 @@ namespace eQuantic.Linq.Exceptions;
 [Serializable]
 public class InvalidFormatException : FormatException
 {
-    public InvalidFormatException(string expressionFor, string expectedFormat, string? simplifiedFormat = null) : base($"Invalid expression for: {expressionFor}. Expected something in the following format: \"{expectedFormat}\".{(!string.IsNullOrEmpty(simplifiedFormat) ? $"Alternatively you can use the simplified version for the equality operator: \"{simplifiedFormat}\"" : "")}")
+    public InvalidFormatException(string expressionFor, string expectedFormat, string? simplifiedFormat = null) : base(BuildMessage(expressionFor, expectedFormat, simplifiedFormat))
     {
     }
 
@@ -18,4 +18,9 @@ public class InvalidFormatException : FormatException
         : base(info, context)
     {
     }
+
+    private static string BuildMessage(string expressionFor, string expectedFormat, string? simplifiedFormat) =>
+        string.IsNullOrEmpty(simplifiedFormat) 
+            ? $"Invalid expression for: {expressionFor}. Expected something in the following format: \"{expectedFormat}\"."
+            : $"Invalid expression for: {expressionFor}. Expected something in the following format: \"{expectedFormat}\". Alternatively you can use the simplified version for the equality operator: \"{simplifiedFormat}\".";
 }

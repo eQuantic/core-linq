@@ -16,7 +16,7 @@ internal sealed class ThenBySorter<T, TKey> : IEntitySorter<T>
         this.direction = direction;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (!(obj is ThenBySorter<T, TKey> sorter))
         {

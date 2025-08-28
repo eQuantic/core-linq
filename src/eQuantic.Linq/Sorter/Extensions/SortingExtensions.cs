@@ -7,6 +7,72 @@ namespace eQuantic.Linq.Sorter.Extensions;
 
 public static class SortingExtensions
 {
+    /// <summary>
+    /// Modern cast method using FluentCastBuilder for enhanced performance and type safety.
+    /// </summary>
+    /// <typeparam name="TEntity">The target entity type.</typeparam>
+    /// <param name="sorting">The source sorting array.</param>
+    /// <param name="builderAction">Action to configure the FluentCastBuilder.</param>
+    /// <returns>Array of cast sorting items.</returns>
+    public static Sorting<TEntity>[] CastWith<TEntity>(this ISorting[] sorting,
+        Action<FluentCastBuilder<TEntity>> builderAction)
+    {
+        var builder = sorting.ToFluentBuilder<TEntity>();
+        builderAction(builder);
+        var options = builder.BuildSortingOptions();
+
+        return Cast<TEntity>(sorting, castOptions => ConfigureFromBuilder(castOptions, options));
+    }
+
+    /// <summary>
+    /// Modern cast method using FluentCastBuilder for enhanced performance and type safety.
+    /// </summary>
+    /// <typeparam name="TEntity">The target entity type.</typeparam>
+    /// <param name="sorting">The source sorting item.</param>
+    /// <param name="builderAction">Action to configure the FluentCastBuilder.</param>
+    /// <returns>Array of cast sorting items.</returns>
+    public static Sorting<TEntity>[] CastWith<TEntity>(this ISorting sorting,
+        Action<FluentCastBuilder<TEntity>> builderAction)
+    {
+        return new[] { sorting }.CastWith(builderAction);
+    }
+
+    /// <summary>
+    /// Helper method to configure legacy options from modern FluentCastBuilder.
+    /// </summary>
+    private static void ConfigureFromBuilder<TEntity>(SortingCastOptions<TEntity> targetOptions, SortingCastOptions<TEntity> sourceOptions)
+    {
+        // Copy configuration from the modern builder to legacy options
+        var sourceMapping = sourceOptions.GetMapping();
+        var sourceExcluded = sourceOptions.GetExcluded();
+
+        foreach (var mapping in sourceMapping)
+        {
+            if (mapping.Value.ColumnExpression != null)
+            {
+                targetOptions.Map(mapping.Key, mapping.Value.ColumnExpression, mapping.Value.Direction);
+            }
+            else if (!string.IsNullOrEmpty(mapping.Value.ColumnName))
+            {
+                targetOptions.Map(mapping.Key, mapping.Value.ColumnName);
+            }
+        }
+
+        foreach (var excluded in sourceExcluded)
+        {
+            targetOptions.Exclude(excluded);
+        }
+
+        if (sourceOptions.GetExcludeUnmapped())
+            targetOptions.ExcludeUnmapped();
+
+        if (sourceOptions.GetThrowUnmapped())
+            targetOptions.ThrowUnmapped();
+
+        if (sourceOptions.GetUseColumnFallback())
+            targetOptions.UseColumnFallback(sourceOptions.GetColumnFallbackApplicability());
+    }
+
     public static Sorting<TEntity>[] Cast<TEntity>(this ISorting[] sorting,
         Action<SortingCastOptions<TEntity>> options)
     {
@@ -30,7 +96,7 @@ public static class SortingExtensions
         var castOptions = new SortingCastOptions<TEntity>();
         options.Invoke(castOptions);
 
-        ThrowUnmapped(new[] { sorting }, castOptions);
+        ThrowUnmapped([sorting], castOptions);
 
         return Cast(sorting, castOptions).ToArray();
     }
@@ -53,7 +119,7 @@ public static class SortingExtensions
 
         if (excluded.Any(o => sortingItem.ColumnName.Equals(o, StringComparison.InvariantCultureIgnoreCase)))
             return list;
-        
+
         if (!excludeUnmapped && !mapping.Any(m =>
                 m.Key.Equals(sortingItem.ColumnName, StringComparison.InvariantCultureIgnoreCase)))
         {

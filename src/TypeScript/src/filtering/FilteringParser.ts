@@ -2,7 +2,7 @@ import QueryString from 'qs';
 import {flatten} from 'flat';
 import { Filtering } from './Filtering.js';
 import { FilteringCollection } from './FilteringCollection.js';
-import type { FieldPath } from '../base.js';
+import type { FieldPath, FieldPathValue } from '../base.js';
 import { OrFiltering } from './OrFiltering.js';
 import { CompositeFiltering } from './CompositeFiltering.js';
 
@@ -10,10 +10,23 @@ import type { IFiltering, IFilteringInfo } from './base.js';
 import { parseExpression } from './base.js';
 import { CompositeFilteringParser } from './CompositeFilteringParser.js';
 
+// Type utilities for safe conversion between source and destination types
+type SafeFieldConversion<TSource extends object, TDestination extends object, TSourceColumn extends FieldPath<TSource>> = 
+  TSourceColumn extends FieldPath<TDestination> 
+    ? TSourceColumn 
+    : FieldPath<TDestination>;
+
+type SafeValueConversion<
+  TSource extends object, 
+  TDestination extends object,
+  TSourceColumn extends FieldPath<TSource>,
+  TDestinationColumn extends FieldPath<TDestination>
+> = FieldPathValue<TDestination, TDestinationColumn>;
+
 export interface IFilteringParserOptions<TData extends object = any, TDestination extends object = TData> {
   consideringNullValues?: boolean;
   consideringEmptyValues?: boolean;
-  parseProperty: (prop: FieldPath<TData>) => IFilteringInfo<TDestination>;
+  parseProperty?: (prop: FieldPath<TData>) => IFilteringInfo<TDestination>;
 }
 
 export interface IFilteringConverterOptions<TSource extends object = any, TDestination extends object = TSource> {
@@ -54,7 +67,7 @@ export class FilteringParser {
       if (!key) continue;
 
       let value = flattenObj[key];
-      const info: IFilteringInfo<TDestination> = options?.parseProperty(key as unknown as FieldPath<TData>) || {
+      const info: IFilteringInfo<TDestination> = options?.parseProperty?.(key as unknown as FieldPath<TData>) || {
         column: key as unknown as FieldPath<TDestination>,
         operator: 'eq',
       };
@@ -64,7 +77,7 @@ export class FilteringParser {
           const composite = new OrFiltering<TDestination>();
           for (const idx in value) {
             if (FilteringParser.validateValue(value[idx], options))
-              composite.addValue(new Filtering<TDestination>(info.column, value[idx], info.operator));
+              composite.addValue(new Filtering<TDestination, FieldPath<TDestination>>(info.column, value[idx], info.operator));
           }
           collection.push(composite);
           continue;
@@ -72,24 +85,35 @@ export class FilteringParser {
         value = value[0];
       }
       if (FilteringParser.validateValue(value, options))
-        collection.push(new Filtering<TDestination>(info.column, value, info.operator));
+        collection.push(new Filtering<TDestination, FieldPath<TDestination>>(info.column, value, info.operator));
     }
 
     return collection;
   }
 
-  public static parse<TSource extends object, TDestination extends object>(
-    source: IFiltering<TSource>,
+  public static parse<
+    TSource extends object, 
+    TDestination extends object,
+    TSourceColumn extends FieldPath<TSource> = FieldPath<TSource>
+  >(
+    source: IFiltering<TSource, TSourceColumn>,
     options?: IFilteringConverterOptions<TSource, TDestination>,
-  ): IFiltering<TDestination> {
+  ): IFiltering<TDestination, FieldPath<TDestination>> {
     if (source instanceof CompositeFiltering) {
       return new CompositeFiltering<TDestination>(
         source.compositeOperator,
-        source.values.map((value) => FilteringParser.parse<TSource, TDestination>(value)),
+        source.values.map((value) => FilteringParser.parse(value as IFiltering<TSource, FieldPath<TSource>>, options)),
       );
     }
-    const columnName = options?.parseProperty(source.column) || (source.column as unknown as FieldPath<TDestination>);
-    return new Filtering<TDestination>(columnName, source.value, source.operator);
+    
+    const convertedColumn = options?.parseProperty(source.column) || (source.column as unknown as FieldPath<TDestination>);
+    const convertedValue = source.value as unknown as FieldPathValue<TDestination, typeof convertedColumn>;
+    
+    return new Filtering<TDestination, typeof convertedColumn>(
+      convertedColumn, 
+      convertedValue, 
+      source.operator
+    );
   }
 
   public static parseCollection<TSource extends object, TDestination extends object>(
