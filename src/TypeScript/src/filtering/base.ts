@@ -119,12 +119,12 @@ export function parseComposite<TData extends object = any>(
   // Check for collection operations first (collection:any(args) or collection:all(args))
   const collectionMatch = exp.match(collectionRegex);
   if (collectionMatch) {
-    const [, collectionProperty, operator, innerArgs] = collectionMatch;
-    const compositeOperator = operator as CompositeOperator;
+    const [, collectionProperty, collectionOperator, innerArgs] = collectionMatch;
+    const compositeOperator = collectionOperator as CompositeOperator;
     
     // For collection operations, we need to wrap the inner args with the collection property
-    const args = splitArguments(innerArgs);
-    const wrappedArgs = args.map(arg => `${collectionProperty}.${arg}`);
+    const innerArguments = splitArguments(innerArgs);
+    const wrappedArgs = innerArguments.map(arg => `${collectionProperty}.${arg}`);
     
     return { values: wrappedArgs, compositeOperator };
   }
