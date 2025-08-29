@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
+using eQuantic.Linq.Expressions;
 
 namespace eQuantic.Linq.Filter;
 
@@ -51,6 +52,15 @@ public static class EntityFilter<TEntity>
         {
             if (filtering is CompositeFiltering compositeFiltering)
             {
+                // Handle Any/All operators for collections
+                if (compositeFiltering.CompositeOperator is CompositeOperator.Any or CompositeOperator.All)
+                {
+                    var collectionBuilder = new EntityFilterBuilder<TEntity>(compositeFiltering.ColumnName, 
+                        compositeFiltering.Values, compositeFiltering.CompositeOperator);
+                    entityFilter = collectionBuilder.BuildWhereEntityFilter(entityFilter, compositeOperator);
+                    continue;
+                }
+
                 if (compositeFiltering.Values.Length == 1)
                 {
                     var f = compositeFiltering.Values.First();
@@ -72,6 +82,7 @@ public static class EntityFilter<TEntity>
 
         return entityFilter;
     }
+
 
     /// <summary>An empty entity filter.</summary>
     [DebuggerDisplay("EntityFilter ( Unfiltered )")]

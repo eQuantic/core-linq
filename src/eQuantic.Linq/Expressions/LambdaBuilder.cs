@@ -39,6 +39,143 @@ namespace eQuantic.Linq.Expressions
             return Expression.Lambda<Func<T, bool>>(binaryExpression, parameterExpression);
         }
 
+        public virtual LambdaExpression BuildLambda(PropertyInfo[] properties, CompositeOperator compositeOperator, IFiltering[] values)
+        {
+            // Handle Any/All operations for collection properties
+            if (compositeOperator is CompositeOperator.Any or CompositeOperator.All)
+            {
+                return BuildCollectionLambda(properties, compositeOperator, values);
+            }
+
+            // For And/Or operations, this would be handled elsewhere
+            throw new NotSupportedException($"Composite operator {compositeOperator} is not supported in this context");
+        }
+
+        protected virtual LambdaExpression BuildCollectionLambda(PropertyInfo[] collectionProperties, CompositeOperator compositeOperator, IFiltering[] values)
+        {
+            var param = Expression.Parameter(typeof(T), "entity");
+            
+            // Build collection access expression
+            Expression collectionAccess = param;
+            foreach (var prop in collectionProperties)
+            {
+                collectionAccess = Expression.Property(collectionAccess, prop);
+            }
+
+            var collectionType = collectionProperties.Last().PropertyType;
+            var itemType = GetCollectionItemType(collectionType);
+            
+            if (itemType == null)
+                throw new InvalidOperationException($"Property '{string.Join(".", collectionProperties.Select(p => p.Name))}' is not a collection type");
+
+            // Build inner predicate for collection items using existing logic
+            var innerPredicate = BuildInnerCollectionPredicate(itemType, values);
+            
+            // Build Any() or All() expression
+            var methodName = compositeOperator == CompositeOperator.Any ? "Any" : "All";
+            var enumerableType = typeof(Enumerable);
+            var method = enumerableType.GetMethods()
+                .Where(m => m.Name == methodName && m.GetParameters().Length == 2)
+                .First()
+                .MakeGenericMethod(itemType);
+
+            var methodCall = Expression.Call(method, collectionAccess, innerPredicate);
+            
+            return Expression.Lambda<Func<T, bool>>(methodCall, param);
+        }
+
+        protected virtual LambdaExpression BuildInnerCollectionPredicate(Type itemType, IFiltering[] filters)
+        {
+            var itemParam = Expression.Parameter(itemType, "item");
+            Expression? combinedExpression = null;
+
+            foreach (var filter in filters)
+            {
+                var filterExpression = BuildSingleFilterExpression(itemParam, itemType, filter);
+                
+                combinedExpression = combinedExpression == null
+                    ? filterExpression
+                    : Expression.AndAlso(combinedExpression, filterExpression);
+            }
+
+            combinedExpression ??= Expression.Constant(true);
+            
+            var delegateType = typeof(Func<,>).MakeGenericType(itemType, typeof(bool));
+            return Expression.Lambda(delegateType, combinedExpression, itemParam);
+        }
+
+        protected virtual Expression BuildSingleFilterExpression(ParameterExpression itemParam, Type itemType, IFiltering filter)
+        {
+            var properties = EntityBuilder.GetProperties(itemType, filter.ColumnName, false);
+            var propertyType = properties.Last().PropertyType;
+            
+            // Build property access expression
+            Expression propertyAccess = itemParam;
+            foreach (var prop in properties)
+            {
+                propertyAccess = Expression.Property(propertyAccess, prop);
+            }
+
+            // Convert filter value to proper type
+            var convertedValue = ConvertValueToType(filter.StringValue, propertyType, filter.Operator);
+            var constantExpression = Expression.Constant(convertedValue, propertyType);
+
+            // Build comparison expression based on operator
+            return filter.Operator switch
+            {
+                FilterOperator.Equal => Expression.Equal(propertyAccess, constantExpression),
+                FilterOperator.NotEqual => Expression.NotEqual(propertyAccess, constantExpression),
+                FilterOperator.Contains when propertyType == typeof(string) => 
+                    Expression.Call(propertyAccess, GetMethod("Contains", typeof(string)), constantExpression),
+                FilterOperator.StartsWith when propertyType == typeof(string) => 
+                    Expression.Call(propertyAccess, GetMethod("StartsWith", typeof(string)), constantExpression),
+                FilterOperator.EndsWith when propertyType == typeof(string) => 
+                    Expression.Call(propertyAccess, GetMethod("EndsWith", typeof(string)), constantExpression),
+                FilterOperator.GreaterThan => Expression.GreaterThan(propertyAccess, constantExpression),
+                FilterOperator.GreaterThanOrEqual => Expression.GreaterThanOrEqual(propertyAccess, constantExpression),
+                FilterOperator.LessThan => Expression.LessThan(propertyAccess, constantExpression),
+                FilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(propertyAccess, constantExpression),
+                FilterOperator.NotContains when propertyType == typeof(string) => 
+                    Expression.Not(Expression.Call(propertyAccess, GetMethod("Contains", typeof(string)), constantExpression)),
+                _ => throw new NotSupportedException($"Filter operator {filter.Operator} is not supported for collection filtering")
+            };
+        }
+
+        protected virtual Type? GetCollectionItemType(Type propertyType)
+        {
+            // Handle IEnumerable<T> through interfaces
+            var enumerableInterface = propertyType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            
+            return enumerableInterface?.GetGenericArguments().FirstOrDefault() ?? 
+                   (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>) 
+                       ? propertyType.GetGenericArguments().FirstOrDefault() 
+                       : null);
+        }
+
+        protected virtual object? ConvertValueToType(string? value, Type targetType, FilterOperator @operator)
+        {
+            if (value == null) return null;
+            
+            var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+            
+            return underlyingType switch
+            {
+                Type t when t == typeof(string) => value,
+                Type t when t == typeof(int) => int.Parse(value),
+                Type t when t == typeof(long) => long.Parse(value),
+                Type t when t == typeof(decimal) => decimal.Parse(value),
+                Type t when t == typeof(double) => double.Parse(value),
+                Type t when t == typeof(float) => float.Parse(value),
+                Type t when t == typeof(bool) => bool.Parse(value),
+                Type t when t == typeof(DateTime) => DateTime.Parse(value),
+                Type t when t == typeof(DateTimeOffset) => DateTimeOffset.Parse(value),
+                Type t when t == typeof(Guid) => Guid.Parse(value),
+                Type t when t.IsEnum => Enum.Parse(t, value, true),
+                _ => Convert.ChangeType(value, underlyingType, System.Globalization.CultureInfo.InvariantCulture)
+            };
+        }
+
         protected static Expression BuildPropertyExpression(IEnumerable<MethodInfo> propertyAccessors, Expression parameterExpression)
         {
             Expression propertyExpression = null;
@@ -216,6 +353,7 @@ namespace eQuantic.Linq.Expressions
         {
             return Expression.Parameter(typeof(T), "entity");
         }
+
 
         protected static MethodInfo GetMethod(string name, Type type)
         {

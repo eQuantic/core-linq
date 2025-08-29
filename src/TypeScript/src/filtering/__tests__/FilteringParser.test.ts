@@ -204,4 +204,136 @@ describe('FilteringParser Conceptual Tests', () => {
       expect(filters.length).toBe(0);
     });
   });
+
+  describe('Any/All Collection Operations Parsing', () => {
+    interface TestUserWithRoles extends TestUser {
+      roles: { name: string; isActive: boolean; permissions: string[] }[];
+      projects: { status: string; priority: number; isCompleted: boolean }[];
+    }
+
+    it('should parse any collection operation', () => {
+      const queryString = 'roles:any(name:eq(Admin),isActive:eq(true))';
+      
+      // Test parsing the collection regex pattern
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      const match = queryString.match(collectionRegex);
+      
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('roles');           // collection property
+      expect(match![2]).toBe('any');             // operator
+      expect(match![3]).toBe('name:eq(Admin),isActive:eq(true)'); // inner args
+    });
+
+    it('should parse all collection operation', () => {
+      const queryString = 'projects:all(status:eq(Active),priority:gte(5))';
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      const match = queryString.match(collectionRegex);
+      
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('projects');        // collection property
+      expect(match![2]).toBe('all');             // operator
+      expect(match![3]).toBe('status:eq(Active),priority:gte(5)'); // inner args
+    });
+
+    it('should parse single condition in any operation', () => {
+      const queryString = 'roles:any(name:eq(Admin))';
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      const match = queryString.match(collectionRegex);
+      
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('roles');
+      expect(match![2]).toBe('any');
+      expect(match![3]).toBe('name:eq(Admin)');
+    });
+
+    it('should parse complex conditions in all operation', () => {
+      const queryString = 'projects:all(status:neq(Cancelled),isCompleted:eq(false),priority:gte(3))';
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      const match = queryString.match(collectionRegex);
+      
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('projects');
+      expect(match![2]).toBe('all');
+      expect(match![3]).toBe('status:neq(Cancelled),isCompleted:eq(false),priority:gte(3)');
+    });
+
+    it('should not match regular property:value patterns as collections', () => {
+      const regularQueries = [
+        'name:eq(John)',
+        'age:gt(25)',
+        'isActive:eq(true)',
+        'email:ct(@example.com)'
+      ];
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      
+      regularQueries.forEach(query => {
+        const match = query.match(collectionRegex);
+        expect(match).toBeNull();
+      });
+    });
+
+    it('should not match regular composite operations as collections', () => {
+      const compositeQueries = [
+        'and(name:eq(John),age:gt(25))',
+        'or(name:eq(John),name:eq(Jane))'
+      ];
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      
+      compositeQueries.forEach(query => {
+        const match = query.match(collectionRegex);
+        expect(match).toBeNull();
+      });
+    });
+
+    it('should handle nested conditions within any/all operations', () => {
+      const queryString = 'roles:any(or(name:eq(Admin),name:eq(Manager)))';
+      
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      const match = queryString.match(collectionRegex);
+      
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe('roles');
+      expect(match![2]).toBe('any');
+      expect(match![3]).toBe('or(name:eq(Admin),name:eq(Manager))');
+    });
+
+    it('should validate collection operation formats', () => {
+      const validFormats = [
+        'roles:any(name:eq(Admin))',
+        'projects:all(status:eq(Active))',
+        'permissions:any(name:ct(write))',
+        'tasks:all(isCompleted:eq(true),priority:gte(5))'
+      ];
+
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      
+      validFormats.forEach(format => {
+        const match = format.match(collectionRegex);
+        expect(match).not.toBeNull();
+        expect(['any', 'all']).toContain(match![2]);
+      });
+    });
+
+    it('should reject invalid collection operation formats', () => {
+      const invalidFormats = [
+        'roles:any',                    // Missing parentheses
+        'any(name:eq(Admin))',         // Missing collection property
+        'roles:some(name:eq(Admin))',  // Invalid operator
+        ':any(name:eq(Admin))',        // Missing collection property
+        'roles:any()',                 // Empty conditions
+      ];
+
+      const collectionRegex = /^(\w+):(any|all)\((.+)\)$/;
+      
+      invalidFormats.forEach(format => {
+        const match = format.match(collectionRegex);
+        expect(match).toBeNull();
+      });
+    });
+  });
 });

@@ -27,6 +27,22 @@ internal class EntityFilterBuilder<T>
         keySelector = builder.BuildLambda(properties.ToArray(), convertedValue, @operator);
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityFilterBuilder{T}"/> class for collection operations.
+    /// </summary>
+    /// <param name="collectionPropertyName">Name of the collection property.</param>
+    /// <param name="values">The inner filtering values.</param>
+    /// <param name="compositeOperator">The composite operator (Any/All).</param>
+    /// <param name="useColumnFallback">if set to <c>true</c> fallback to search for Column attributes if the property name isn't found in TEntity</param>
+    /// <param name="lambdaBuilderFactory">The lambda builder factory</param>
+    public EntityFilterBuilder(string collectionPropertyName, IFiltering[] values, CompositeOperator compositeOperator, bool useColumnFallback = false, ILambdaBuilderFactory lambdaBuilderFactory = null)
+    {
+        var properties = EntityBuilder.GetProperties<T>(collectionPropertyName, useColumnFallback);
+        var builder = GetLambdaBuilderFactory(lambdaBuilderFactory).Create(typeof(T), typeof(bool));
+        
+        keySelector = builder.BuildLambda(properties.ToArray(), compositeOperator, values);
+    }
+
     public IEntityFilter<T> BuildWhereEntityFilter()
     {
         var typeArgs = new[] { typeof(T) };

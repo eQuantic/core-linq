@@ -219,20 +219,111 @@ public async Task<User[]> SearchUsers(UserSearchCriteria criteria)
 }
 ```
 
-### 5. Async Operations
+### 5. Collection Filtering (Any/All Operations)
+
+**New in v2.1+**: Filter collections with `Any` and `All` operators for complex collection queries:
+
+```csharp
+// Entity with collections
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Role> Roles { get; set; } = new();
+    public List<Project> Projects { get; set; } = new();
+}
+
+public class Role
+{
+    public string Name { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public List<string> Permissions { get; set; } = new();
+}
+
+// Find users with ANY admin or manager roles
+var adminOrManagerUsers = new CompositeFiltering<User>(
+    CompositeOperator.Any,
+    u => u.Roles,
+    "Name:eq(Admin)",
+    "Name:eq(Manager)"
+);
+
+// Find users where ALL projects are completed
+var usersWithCompletedProjects = new CompositeFiltering<User>(
+    CompositeOperator.All,
+    u => u.Projects,
+    "Status:eq(Completed)",
+    "IsActive:eq(false)"
+);
+
+// Apply to queries
+var adminUsers = adminOrManagerUsers.Filter(dbContext.Users).ToList();
+var completedProjectUsers = usersWithCompletedProjects.Filter(dbContext.Users).ToList();
+```
+
+#### String Query Format
+
+Collection operations support intuitive string query syntax:
+
+```csharp
+// Parse collection queries from strings
+var anyRoleFilter = CompositeFiltering.ParseComposite("Roles:any(Name:eq(Admin),IsActive:eq(true))");
+var allProjectFilter = CompositeFiltering.ParseComposite("Projects:all(Status:neq(Cancelled),Priority:gte(5))");
+
+// Complex nested conditions
+var complexFilter = CompositeFiltering.ParseComposite(
+    "Roles:any(or(Name:eq(Admin),and(Name:eq(Manager),IsActive:eq(true))))"
+);
+```
+
+#### Business Use Cases
+
+Perfect for real-world scenarios:
+
+```csharp
+// Find users with any active administrative roles
+var adminUsersFilter = new CompositeFiltering<User>(
+    CompositeOperator.Any,
+    u => u.Roles,
+    "Name:eq(Admin)",
+    "Name:eq(SuperAdmin)",
+    "and(Name:eq(Manager),IsActive:eq(true))"
+);
+
+// Find users where all projects are high-priority and in progress
+var highPriorityUsersFilter = new CompositeFiltering<User>(
+    CompositeOperator.All,
+    u => u.Projects,
+    "Priority:gte(8)",
+    "Status:eq(InProgress)",
+    "AssignedAt:gte(2024-01-01)"
+);
+
+// Find users with any roles that have write permissions
+var writePermissionUsersFilter = new CompositeFiltering<User>(
+    CompositeOperator.Any,
+    u => u.Roles,
+    "Permissions:ct(write)",
+    "Permissions:ct(admin)"
+);
+```
+
+### 6. Async Operations
 
 Full support for asynchronous operations:
 
 ```csharp
-// Async filtering and sorting
+// Async filtering and sorting with collections
 var users = await Query.For<User>()
     .Where(u => u.IsActive)
+    .Where(adminOrManagerUsers) // Apply collection filter
     .OrderByDescending(u => u.LastLoginAt)
     .ApplyToAsync(dbContext.Users, cancellationToken);
 
 // Async enumerable for streaming large datasets
 await foreach (var user in Query.For<User>()
     .Where(u => u.CreatedAt > DateTime.Now.AddYears(-1))
+    .Where(usersWithCompletedProjects)
     .ApplyToAsyncEnumerable(dbContext.Users, cancellationToken))
 {
     await ProcessUserAsync(user);

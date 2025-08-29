@@ -5,7 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-12-XX
+## [2.1.0] - 2025-08-29
+
+### 🚀 Added
+
+#### Collection Filtering (Any/All Operations)
+- **New Collection Operators**: Added `Any` and `All` operators to `CompositeOperator` enum for advanced collection filtering
+- **Collection Filtering Support**: `CompositeFiltering<T>` now supports filtering on collection properties with `Any`/`All` semantics
+- **String Query Parsing**: Enhanced query parser to support collection operations with syntax like `Roles:any(Name:eq(Admin),IsActive:eq(true))`
+- **Nested Collection Queries**: Support for complex nested conditions within collection operations
+- **Type-Safe Collection Access**: Full type safety when filtering collection properties with generic constraints
+
+#### Enhanced Documentation
+- **Comprehensive XML Documentation**: Added complete XML documentation to all C# classes and methods
+- **JSDoc Documentation**: Full JSDoc documentation for TypeScript implementation with detailed examples
+- **API Reference**: Enhanced inline documentation with practical usage examples
+- **Collection Examples**: Real-world examples for user roles, project management, and permission-based filtering
+
+#### TypeScript Improvements
+- **Collection Operator Type**: Added `CompositeOperator` type definition with `'any' | 'all'` support
+- **Enhanced Type Safety**: Improved type definitions for collection-based filtering operations
+- **Better IntelliSense**: Enhanced IDE support with comprehensive JSDoc comments
+
+### 🔧 Changed
+
+#### API Enhancements
+- **CompositeFiltering Constructor**: Enhanced constructor overloads to support collection property specification
+- **String Parsing Logic**: Improved `parseComposite` function to handle collection operations with property prefixing
+- **ToString Method**: Enhanced string representation for collection operations with proper formatting
+
+#### Performance Optimizations
+- **Collection Query Optimization**: Optimized parsing and execution of collection-based queries
+- **Expression Building**: Improved expression tree construction for collection operations
+- **Memory Efficiency**: Reduced allocations in collection filtering scenarios
+
+### 🐛 Fixed
+
+#### Collection Operations
+- **Property Prefix Handling**: Fixed property prefixing in collection operations to correctly scope nested properties
+- **Parser Edge Cases**: Resolved parsing issues with complex nested collection queries
+- **Type Resolution**: Improved type resolution for collection property expressions
+
+#### Documentation
+- **Code Examples**: Fixed and enhanced code examples in documentation
+- **API Consistency**: Ensured consistent naming and behavior across C# and TypeScript implementations
+
+### 📚 Documentation
+
+#### New Sections
+- **Collection Filtering Guide**: Comprehensive guide with real-world examples
+- **Business Use Cases**: Practical scenarios for admin roles, project completion, and permission filtering
+- **String Query Format**: Complete documentation of collection query syntax
+- **Integration Examples**: Shows integration with async operations and complex queries
+
+#### Enhanced Examples
+- **User Management**: Examples for filtering users by roles and permissions
+- **Project Management**: Collection queries for project completion and assignment
+- **Administrative Operations**: Complex queries for admin and management scenarios
+
+### 🧪 Testing
+
+- **Collection Filter Tests**: Comprehensive test suite for Any/All collection operations
+- **Parser Tests**: Enhanced testing for collection query string parsing
+- **TypeScript Tests**: Updated Jest configuration and tests for collection operations
+- **Integration Tests**: End-to-end testing of collection filtering in real scenarios
+
+### 💡 Usage Examples
+
+```csharp
+// Find users with ANY admin or manager roles
+var adminOrManagerUsers = new CompositeFiltering<User>(
+    CompositeOperator.Any,
+    u => u.Roles,
+    "Name:eq(Admin)",
+    "Name:eq(Manager)"
+);
+
+// Find users where ALL projects are completed
+var usersWithCompletedProjects = new CompositeFiltering<User>(
+    CompositeOperator.All,
+    u => u.Projects,
+    "Status:eq(Completed)",
+    "IsActive:eq(false)"
+);
+
+// String query parsing
+var anyRoleFilter = CompositeFiltering.ParseComposite("Roles:any(Name:eq(Admin),IsActive:eq(true))");
+```
+
+---
+
+## [2.0.0] - 2025-08-28
 
 ### 🚀 Added
 

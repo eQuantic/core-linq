@@ -2,26 +2,76 @@
 
 namespace eQuantic.Linq.Filter;
 
+/// <summary>
+/// Defines the available filter operators for individual property filtering conditions.
+/// </summary>
 public enum FilterOperator
 {
+    /// <summary>
+    /// Tests for equality between the property value and the specified value.
+    /// </summary>
     Equal = 0,
+    
+    /// <summary>
+    /// Tests for inequality between the property value and the specified value.
+    /// </summary>
     NotEqual = 1,
+    
+    /// <summary>
+    /// Tests if the property value contains the specified substring (for string properties).
+    /// </summary>
     Contains = 2,
+    
+    /// <summary>
+    /// Tests if the property value starts with the specified substring (for string properties).
+    /// </summary>
     StartsWith = 3,
+    
+    /// <summary>
+    /// Tests if the property value ends with the specified substring (for string properties).
+    /// </summary>
     EndsWith = 4,
+    
+    /// <summary>
+    /// Tests if the property value is greater than the specified value (for comparable types).
+    /// </summary>
     GreaterThan = 5,
+    
+    /// <summary>
+    /// Tests if the property value is greater than or equal to the specified value (for comparable types).
+    /// </summary>
     GreaterThanOrEqual = 6,
+    
+    /// <summary>
+    /// Tests if the property value is less than the specified value (for comparable types).
+    /// </summary>
     LessThan = 7,
+    
+    /// <summary>
+    /// Tests if the property value is less than or equal to the specified value (for comparable types).
+    /// </summary>
     LessThanOrEqual = 8,
+    
+    /// <summary>
+    /// Tests if the property value does not contain the specified substring (for string properties).
+    /// </summary>
     NotContains = 9
 }
 
+/// <summary>
+/// Provides utility methods for working with composite operator values and their string representations.
+/// </summary>
 public static class CompositeOperatorValues
 {
+    /// <summary>
+    /// Gets a read-only dictionary mapping composite operators to their string representations.
+    /// </summary>
     public static ReadOnlyDictionary<CompositeOperator, string> Values => new ReadOnlyDictionary<CompositeOperator, string>(new Dictionary<CompositeOperator, string>
     {
         {CompositeOperator.And, "and"},
-        {CompositeOperator.Or, "or"}
+        {CompositeOperator.Or, "or"},
+        {CompositeOperator.Any, "any"},
+        {CompositeOperator.All, "all"}
     });
 
     /// <summary>
@@ -32,7 +82,7 @@ public static class CompositeOperatorValues
     public static bool Exists(string compositeOperator) => 
         compositeOperator?.ToLowerInvariant() switch
         {
-            "and" or "or" => true,
+            "and" or "or" or "any" or "all" => true,
             _ => false
         };
 
@@ -45,6 +95,8 @@ public static class CompositeOperatorValues
     {
         CompositeOperator.And => "and",
         CompositeOperator.Or => "or",
+        CompositeOperator.Any => "any",
+        CompositeOperator.All => "all",
         _ => throw new ArgumentOutOfRangeException(nameof(compositeOperator), compositeOperator, "Unknown composite operator")
     };
 
@@ -58,12 +110,20 @@ public static class CompositeOperatorValues
         {
             "and" => CompositeOperator.And,
             "or" => CompositeOperator.Or,
+            "any" => CompositeOperator.Any,
+            "all" => CompositeOperator.All,
             _ => null
         };
 }
 
+/// <summary>
+/// Provides utility methods for working with filter operator values and their string representations.
+/// </summary>
 public static class FilterOperatorValues
 {
+    /// <summary>
+    /// Gets a read-only dictionary mapping filter operators to their string representations.
+    /// </summary>
     public static ReadOnlyDictionary<FilterOperator, string> Values => new ReadOnlyDictionary<FilterOperator, string>(new Dictionary<FilterOperator, string>
     {
         {FilterOperator.Equal, "eq"},

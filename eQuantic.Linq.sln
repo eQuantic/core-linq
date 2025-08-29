@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eQuantic.Linq", "src\eQuantic.Linq\eQuantic.Linq.csproj", "{B2DBFEB8-4305-4C8D-A576-E25C0C03EAC8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{BC458CA8-0672-4668-97A7-32A33BFD42D6}"
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{BC458CA8-0
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		CLAUDE.md = CLAUDE.md
+		CHANGELOG.md = CHANGELOG.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E18DEDAB-F88D-414C-BF73-86B27DF69011}"
