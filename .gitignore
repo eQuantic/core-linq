@@ -366,3 +366,5 @@ healthchecksdb
 src/TypeScript/lib
 
 yarn.lock
+
+.DS_Store

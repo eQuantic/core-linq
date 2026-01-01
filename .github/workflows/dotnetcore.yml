@@ -15,21 +15,42 @@ jobs:
         run: dotnet build --configuration Release
       - name: Push package into Nuget.org
         run: dotnet nuget push **/*.nupkg --skip-duplicate -k ${{secrets.nuget_key}} -s https://api.nuget.org/v3/index.json
+
   buildNpm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     defaults:
       run:
         shell: bash
         working-directory: ./src/TypeScript
     steps:
       - uses: actions/checkout@v4
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+
+      # Publish to npm public registry
+      - name: 🔧 Setup Node.js for npm public
+        uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm init --scope=equantic
+          node-version: "20.x"
+          registry-url: "https://registry.npmjs.org"
+
       - run: npm ci
-      - run: npm publish --access public
+
+      - name: 📤 Publish to npm public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Publish to GitHub Packages
+      - name: 🔧 Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@equantic"
+
+      - name: 📤 Publish to GitHub Packages
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
