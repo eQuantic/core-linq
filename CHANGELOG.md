@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.0](https://github.com/eQuantic/core-linq/compare/v2.0.0...v3.0.0) (2026-07-18)
+
+### ⚠ BREAKING CHANGES
+
+* the v2 API surface (Filtering, Sorting, EntityFilter,
+ExpressionBuilder) is replaced by the eQuantic.Linq.Expressions engine and
+its satellite packages. The previous implementation is preserved on the
+version2 branch; the new surface is documented in docs/.
+
+### Features
+
+* eQuantic.Linq v3 ([2a5c5c2](https://github.com/eQuantic/core-linq/commit/2a5c5c260cb379fec13d7dd6f951413d81c8ae92))
+
 ## [3.0.0-preview.1] - 2026-07-18
 
 ### Added
