@@ -35,6 +35,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- GHSA-2m69-gcr7-jv3q: EFCore.Sqlite transitively bundles a vulnerable native SQLite (lib.e_sqlite3 <= 2.1.11); pin the patched bundle until EF ships one -->
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Include="Payloads\**" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 </Project>
