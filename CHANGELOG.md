@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.1.0](https://github.com/eQuantic/core-linq/compare/v3.0.0...v3.1.0) (2026-07-18)
+
+### Features
+
+* OpenAPI documentation for the entity-query surface ([8d678b5](https://github.com/eQuantic/core-linq/commit/8d678b5b219232cf7f4349cb468855ac3462c3fc))
+
+### Bug Fixes
+
+* netstandard2.0 build of the documentation catalog ([d7cd8a1](https://github.com/eQuantic/core-linq/commit/d7cd8a19cb3a0738625f02ce25d83cfddd0bcc88))
+
 ## [3.0.0](https://github.com/eQuantic/core-linq/compare/v2.0.0...v3.0.0) (2026-07-18)
 
 ### ⚠ BREAKING CHANGES
