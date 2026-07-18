@@ -13,9 +13,13 @@ internal static class ExpressionJson
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals | JsonNumberHandling.AllowReadingFromString,
             AllowOutOfOrderMetadataProperties = true,
             WriteIndented = options.WriteIndented,
+
+            // Expression trees nest deeply (every binary node ≈ 3 JSON levels); the STJ default of 64
+            // would reject legitimate wide filters.
+            MaxDepth = 512,
         };
 
         jsonOptions.Converters.Add(new JsonStringEnumConverter());

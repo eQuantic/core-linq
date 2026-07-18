@@ -43,10 +43,23 @@ internal sealed class AnonymousTypeFactory
         && type.Name.Contains("AnonymousType")
         && (type.Name.StartsWith("<>", StringComparison.Ordinal) || type.Name.StartsWith("VB$", StringComparison.Ordinal));
 
+    /// <summary>Number of distinct shapes emitted so far.</summary>
+    public int EmittedCount => _typeCount;
+
     /// <summary>Gets or emits a type matching the given ordered property shape.</summary>
-    public Type GetOrCreate(IReadOnlyList<KeyValuePair<string, Type>> properties)
+    /// <param name="properties">Ordered property shape.</param>
+    /// <param name="maxEmittedTypes">Optional cap on distinct emitted shapes (cache hits are always allowed).</param>
+    public Type GetOrCreate(IReadOnlyList<KeyValuePair<string, Type>> properties, int? maxEmittedTypes = null)
     {
         var key = BuildKey(properties);
+
+        if (maxEmittedTypes is { } cap && !_cache.ContainsKey(key) && _typeCount >= cap)
+        {
+            throw new TypeResolutionException(
+                $"The anonymous-type emission cap ({cap}) was reached; refusing to materialize a new shape. " +
+                "Raise TypeResolutionOptions.MaxAnonymousTypes if this workload legitimately needs more shapes.");
+        }
+
         var lazy = _cache.GetOrAdd(key, _ => new Lazy<Type>(() => Emit(properties)));
         return lazy.Value;
     }

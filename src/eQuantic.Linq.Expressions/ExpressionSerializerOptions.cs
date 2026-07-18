@@ -36,4 +36,19 @@ public sealed class ExpressionSerializerOptions
 
     /// <summary>Last-chance hook to customize the underlying <see cref="JsonSerializerOptions"/>.</summary>
     public Action<JsonSerializerOptions>? ConfigureJson { get; set; }
+
+    /// <summary>Maximum node depth accepted when rebuilding expressions (hostile-payload guard). Defaults to 1024.</summary>
+    public int MaxDepth { get; set; } = 1024;
+
+    /// <summary>Maximum total node count accepted when rebuilding expressions (hostile-payload guard). Defaults to 100 000.</summary>
+    public int MaxNodes { get; set; } = 100_000;
+
+    /// <summary>
+    /// Optional gate applied to every method a payload resolves (calls, element initializers,
+    /// operators, switch comparisons). Return <see langword="false"/> to reject the method.
+    /// </summary>
+    public Func<System.Reflection.MethodInfo, bool>? MethodFilter { get; set; }
+
+    /// <summary>Format provider used to coerce string constants into member types (dates, decimals…). Defaults to invariant.</summary>
+    public IFormatProvider FormatProvider { get; set; } = System.Globalization.CultureInfo.InvariantCulture;
 }

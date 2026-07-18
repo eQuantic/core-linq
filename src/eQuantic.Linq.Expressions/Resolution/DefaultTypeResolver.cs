@@ -107,10 +107,16 @@ public sealed class DefaultTypeResolver : ITypeResolver
 
         if (typeRef.IsAnonymous)
         {
+            if (!_options.AllowAnonymousTypes)
+            {
+                throw new TypeResolutionException(
+                    "Anonymous type shapes are disabled by the resolution policy (TypeResolutionOptions.AllowAnonymousTypes).");
+            }
+
             var shape = (typeRef.Properties ?? [])
                 .Select(p => new KeyValuePair<string, Type>(p.Name, ResolveType(p.Type)))
                 .ToList();
-            return AnonymousTypeFactory.Shared.GetOrCreate(shape);
+            return AnonymousTypeFactory.Shared.GetOrCreate(shape, _options.MaxAnonymousTypes);
         }
 
         if (typeRef.IsByRef)

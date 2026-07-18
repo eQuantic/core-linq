@@ -22,6 +22,15 @@ public sealed class TypeResolutionOptions
     /// <summary>Namespace prefixes whose types may be resolved when <see cref="Strict"/> is enabled.</summary>
     public IList<string> AllowedNamespaces { get; } = new List<string>();
 
+    /// <summary>Whether anonymous type shapes may be re-materialized. Enabled by default.</summary>
+    public bool AllowAnonymousTypes { get; set; } = true;
+
+    /// <summary>
+    /// Cap on distinct anonymous shapes emitted process-wide (emitted types are never unloaded, so
+    /// unbounded hostile shapes would leak memory). Defaults to 2048; cached shapes never count twice.
+    /// </summary>
+    public int MaxAnonymousTypes { get; set; } = 2048;
+
     /// <summary>Registers a type, optionally under a custom payload alias (defaults to its full name).</summary>
     /// <param name="type">Type to register.</param>
     /// <param name="alias">Custom name used in payloads; defaults to <see cref="Type.FullName"/>.</param>

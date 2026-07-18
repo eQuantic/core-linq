@@ -16,6 +16,74 @@ public sealed class ExpressionSerializer
     /// <summary>Shared serializer with default options.</summary>
     public static ExpressionSerializer Default { get; } = new();
 
+    /// <summary>
+    /// Creates a serializer hardened for untrusted payloads: strict type resolution limited to the
+    /// given contracts, a conservative method allowlist (LINQ operators, <c>string</c>/<c>Math</c>,
+    /// primitives and the contracts themselves), tight anonymous-shape limits and reduced
+    /// depth/node budgets.
+    /// </summary>
+    /// <param name="knownTypes">Contract types payloads may reference.</param>
+    public static ExpressionSerializer CreateSecure(params Type[] knownTypes) =>
+        CreateSecure(knownTypes, configureResolution: null);
+
+    /// <summary>Creates a hardened serializer with additional policy customization.</summary>
+    /// <param name="knownTypes">Contract types payloads may reference.</param>
+    /// <param name="configureResolution">Optional resolution-policy customization.</param>
+    /// <param name="configureOptions">Optional serializer-options customization (applied last).</param>
+    public static ExpressionSerializer CreateSecure(
+        IEnumerable<Type> knownTypes,
+        Action<Resolution.TypeResolutionOptions>? configureResolution,
+        Action<ExpressionSerializerOptions>? configureOptions = null)
+    {
+        var resolution = new Resolution.TypeResolutionOptions
+        {
+            Strict = true,
+            MaxAnonymousTypes = 256,
+        };
+
+        var contracts = new HashSet<Type>(knownTypes ?? []);
+        foreach (var contract in contracts)
+        {
+            resolution.RegisterType(contract);
+        }
+
+        configureResolution?.Invoke(resolution);
+
+        var options = new ExpressionSerializerOptions
+        {
+            TypeResolver = new Resolution.DefaultTypeResolver(resolution),
+            MaxDepth = 256,
+            MaxNodes = 10_000,
+            MethodFilter = method =>
+            {
+                var declaring = method.DeclaringType;
+                if (declaring is null)
+                {
+                    return false;
+                }
+
+                return declaring == typeof(Queryable)
+                       || declaring == typeof(Enumerable)
+                       || declaring == typeof(string)
+                       || declaring == typeof(Math)
+                       || declaring == typeof(object)
+                       || declaring.IsPrimitive
+                       || declaring.IsEnum
+                       || declaring == typeof(decimal)
+                       || declaring == typeof(DateTime)
+                       || declaring == typeof(DateTimeOffset)
+                       || declaring == typeof(TimeSpan)
+                       || declaring == typeof(Guid)
+                       || contracts.Contains(declaring)
+                       || (declaring.IsGenericType && declaring.Namespace == "System.Collections.Generic")
+                       || (declaring.IsGenericType && declaring.GetGenericTypeDefinition() == typeof(Nullable<>));
+            },
+        };
+
+        configureOptions?.Invoke(options);
+        return new ExpressionSerializer(options);
+    }
+
     /// <summary>Creates a serializer.</summary>
     /// <param name="options">Behavioral options; defaults apply when omitted.</param>
     public ExpressionSerializer(ExpressionSerializerOptions? options = null)

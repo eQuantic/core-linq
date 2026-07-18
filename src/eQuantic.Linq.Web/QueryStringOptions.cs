@@ -30,4 +30,15 @@ public sealed class QueryStringOptions
     /// to harden type resolution (strict mode) or tune inference. Defaults to <see cref="ExpressionSerializer.Default"/>.
     /// </summary>
     public ExpressionSerializer Serializer { get; set; } = ExpressionSerializer.Default;
+
+    /// <summary>
+    /// Hardens these options for untrusted callers: swaps the serializer for
+    /// <see cref="ExpressionSerializer.CreateSecure(Type[])"/> restricted to the given contracts.
+    /// </summary>
+    /// <param name="knownTypes">Contract types query strings may reference.</param>
+    public QueryStringOptions UseStrictSerializer(params Type[] knownTypes)
+    {
+        Serializer = ExpressionSerializer.CreateSecure(knownTypes);
+        return this;
+    }
 }

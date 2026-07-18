@@ -25,7 +25,13 @@ internal static class ReflectionCache
             var map = new Dictionary<string, MethodInfo[]>(StringComparer.Ordinal);
             foreach (var group in t.GetMethods(AllMembers).GroupBy(m => m.Name, StringComparer.Ordinal))
             {
-                map[group.Key] = group.ToArray();
+                // Deterministic candidate order across runtimes: non-generic before generic,
+                // then by stable signature text — ambiguous lean payloads always bind the same way.
+                map[group.Key] = group
+                    .OrderBy(m => m.IsGenericMethodDefinition ? 1 : 0)
+                    .ThenBy(m => m.GetParameters().Length)
+                    .ThenBy(m => m.ToString(), StringComparer.Ordinal)
+                    .ToArray();
             }
 
             return map;

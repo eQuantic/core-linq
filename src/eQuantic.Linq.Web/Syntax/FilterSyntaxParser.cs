@@ -43,8 +43,16 @@ internal static class FilterSyntaxParser
 
     // ---------------------------------------------------------------- filters
 
+    /// <summary>Maximum composite/lambda nesting accepted from a query string (hostile-input guard).</summary>
+    private const int MaxNestingDepth = 64;
+
     private static List<ExpressionNode> ParseFilterItems(SyntaxReader reader, string parameterName, int depth)
     {
+        if (depth > MaxNestingDepth)
+        {
+            throw reader.Error($"filter nesting exceeds the maximum depth of {MaxNestingDepth}");
+        }
+
         var items = new List<ExpressionNode> { ParseFilter(reader, parameterName, depth) };
         while (reader.TryConsume(','))
         {
@@ -64,7 +72,7 @@ internal static class FilterSyntaxParser
 
         if (lower is "and" or "or" or "not" && reader.TryConsume('('))
         {
-            var children = ParseFilterItems(reader, parameterName, depth);
+            var children = ParseFilterItems(reader, parameterName, depth + 1);
             reader.Expect(')');
 
             return lower switch
@@ -131,11 +139,19 @@ internal static class FilterSyntaxParser
                     throw reader.Error($"'{lowerOp}' requires at least one value");
                 }
 
-                var equalities = values
-                    .Select(value => (ExpressionNode)Binary(ExpressionType.Equal, path, Constant(value)))
-                    .ToList();
+                // Enumerable.Contains(values, path): stays flat regardless of list size and lets
+                // relational providers translate it to SQL IN. Element typing is inferred by the
+                // engine's binder from the path's type.
+                var membership = new MethodCallNode
+                {
+                    Method = new MethodRef
+                    {
+                        DeclaringType = new eQuantic.Linq.Expressions.Metadata.TypeRef("System.Linq.Enumerable"),
+                        Name = "Contains",
+                    },
+                    Arguments = [new ConstantNode { Value = values }, path],
+                };
 
-                var membership = Combine(equalities, ExpressionType.OrElse);
                 return lowerOp == "in" ? membership : Not(membership);
             }
 
@@ -285,15 +301,24 @@ internal static class FilterSyntaxParser
 
     // ---------------------------------------------------------------- node helpers
 
+    /// <summary>
+    /// Combines nodes into a BALANCED binary tree (not a left fold): evaluation order is preserved,
+    /// but depth grows logarithmically — keeping wide filters within JSON/stack depth limits.
+    /// </summary>
     internal static ExpressionNode Combine(List<ExpressionNode> nodes, ExpressionType op)
     {
-        var result = nodes[0];
-        for (var i = 1; i < nodes.Count; i++)
-        {
-            result = Binary(op, result, nodes[i]);
-        }
+        return Build(0, nodes.Count);
 
-        return result;
+        ExpressionNode Build(int start, int count)
+        {
+            if (count == 1)
+            {
+                return nodes[start];
+            }
+
+            var half = count / 2;
+            return Binary(op, Build(start, half), Build(start + half, count - half));
+        }
     }
 
     private static BinaryNode Binary(ExpressionType op, ExpressionNode left, ExpressionNode right) => new()

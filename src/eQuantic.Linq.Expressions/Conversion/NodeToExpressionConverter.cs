@@ -72,7 +72,34 @@ internal sealed class NodeToExpressionConverter
         }
     }
 
-    private Expression Visit(ExpressionNode node, Type? expected) => node switch
+    private int _depth;
+    private int _nodeCount;
+
+    private Expression Visit(ExpressionNode node, Type? expected)
+    {
+        if (++_nodeCount > _options.MaxNodes)
+        {
+            throw new ExpressionSerializationException(
+                $"The payload exceeds the configured MaxNodes limit ({_options.MaxNodes}).");
+        }
+
+        if (++_depth > _options.MaxDepth)
+        {
+            throw new ExpressionSerializationException(
+                $"The payload exceeds the configured MaxDepth limit ({_options.MaxDepth}).");
+        }
+
+        try
+        {
+            return VisitCore(node, expected);
+        }
+        finally
+        {
+            _depth--;
+        }
+    }
+
+    private Expression VisitCore(ExpressionNode node, Type? expected) => node switch
     {
         ConstantNode constant => VisitConstant(constant, expected),
         ParameterNode parameter => VisitParameter(parameter),
@@ -159,6 +186,25 @@ internal sealed class NodeToExpressionConverter
                     }
                 }
 
+                // Arrays coerce element-wise (query-string membership lists arrive as string arrays).
+                if (element.ValueKind == JsonValueKind.Array && ElementTypeOf(targetType) is { } elementType)
+                {
+                    try
+                    {
+                        var items = new List<object?>();
+                        foreach (var child in element.EnumerateArray())
+                        {
+                            items.Add(MaterializeValue(child, elementType));
+                        }
+
+                        return CoerceValue(items, targetType);
+                    }
+                    catch (ExpressionSerializationException)
+                    {
+                        // fall through to the original error
+                    }
+                }
+
                 throw new ExpressionSerializationException(
                     $"Failed to materialize constant value of type '{targetType}' from JSON.", exception);
             }
@@ -179,7 +225,7 @@ internal sealed class NodeToExpressionConverter
             $"Cannot infer the type of a '{element.ValueKind}' constant; add an explicit \"type\" to the constant node."),
     };
 
-    private static object CoerceValue(object value, Type targetType)
+    private object CoerceValue(object value, Type targetType)
     {
         if (targetType.IsInstanceOfType(value))
         {
@@ -190,6 +236,34 @@ internal sealed class NodeToExpressionConverter
         if (underlying.IsInstanceOfType(value))
         {
             return value;
+        }
+
+        // Collections coerce element-wise (e.g. query-string membership lists arriving as strings).
+        if (value is System.Collections.IEnumerable sequence and not string
+            && ElementTypeOf(underlying) is { } elementType)
+        {
+            var items = new List<object?>();
+            foreach (var item in sequence)
+            {
+                items.Add(item is null ? null : CoerceValue(item, elementType));
+            }
+
+            var array = Array.CreateInstance(elementType, items.Count);
+            for (var i = 0; i < items.Count; i++)
+            {
+                array.SetValue(items[i], i);
+            }
+
+            if (underlying.IsInstanceOfType(array))
+            {
+                return array;
+            }
+
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            if (underlying.IsAssignableFrom(listType))
+            {
+                return Activator.CreateInstance(listType, array)!;
+            }
         }
 
         try
@@ -210,18 +284,18 @@ internal sealed class NodeToExpressionConverter
 
                 if (underlying == typeof(TimeSpan))
                 {
-                    return TimeSpan.Parse(text, CultureInfo.InvariantCulture);
+                    return TimeSpan.Parse(text, _options.FormatProvider);
                 }
 
                 if (underlying == typeof(DateTimeOffset))
                 {
-                    return DateTimeOffset.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                    return DateTimeOffset.Parse(text, _options.FormatProvider, DateTimeStyles.RoundtripKind);
                 }
             }
 
             if (value is IConvertible)
             {
-                return System.Convert.ChangeType(value, underlying, CultureInfo.InvariantCulture);
+                return System.Convert.ChangeType(value, underlying, _options.FormatProvider);
             }
         }
         catch (Exception exception)
@@ -232,6 +306,28 @@ internal sealed class NodeToExpressionConverter
 
         throw new ExpressionSerializationException(
             $"Cannot coerce constant value '{value}' ({value.GetType()}) to '{targetType}'.");
+    }
+
+
+    private static Type? ElementTypeOf(Type type)
+    {
+        if (type.IsArray)
+        {
+            return type.GetElementType();
+        }
+
+        if (type.IsGenericType)
+        {
+            var definition = type.GetGenericTypeDefinition();
+            if (definition == typeof(IEnumerable<>) || definition == typeof(IReadOnlyList<>)
+                || definition == typeof(IReadOnlyCollection<>) || definition == typeof(IList<>)
+                || definition == typeof(ICollection<>) || definition == typeof(List<>))
+            {
+                return type.GetGenericArguments()[0];
+            }
+        }
+
+        return null;
     }
 
     private static bool NeedsTypeContext(ExpressionNode node) => InferenceRules.NeedsTypeContext(node);
@@ -390,7 +486,7 @@ internal sealed class NodeToExpressionConverter
             right = Visit(rightNode, rightNeedsContext ? OperandExpectation(node.NodeType, left.Type, isRight: true) : null);
         }
 
-        var method = node.Method is null ? null : MemberResolver.ResolveMethod(node.Method, _resolver);
+        var method = node.Method is null ? null : Approve(MemberResolver.ResolveMethod(node.Method, _resolver));
         var conversion = node.Conversion is null ? null : VisitLambda(node.Conversion, null);
 
         return Expression.MakeBinary(node.NodeType, left, right, node.LiftToNull, method, conversion);
@@ -410,7 +506,7 @@ internal sealed class NodeToExpressionConverter
             : node.NodeType is ExpressionType.Convert or ExpressionType.ConvertChecked
                 ? Meaningful(expected)
                 : null;
-        var method = node.Method is null ? null : MemberResolver.ResolveMethod(node.Method, _resolver);
+        var method = node.Method is null ? null : Approve(MemberResolver.ResolveMethod(node.Method, _resolver));
 
         if (node.NodeType == ExpressionType.Throw)
         {
@@ -437,7 +533,7 @@ internal sealed class NodeToExpressionConverter
         // Fully explicit reference: resolve directly, then decode arguments against the real signature.
         if (node.Method.DeclaringType is not null && node.Method.ParameterTypes is not null)
         {
-            var method = MemberResolver.ResolveMethod(node.Method, _resolver);
+            var method = Approve(MemberResolver.ResolveMethod(node.Method, _resolver));
             var instance = node.Object is null ? null : Visit(node.Object, null);
             var arguments = DecodeArguments(node.Arguments, method.GetParameters(), 0);
             return Expression.Call(instance, method, arguments);
@@ -478,7 +574,7 @@ internal sealed class NodeToExpressionConverter
             if (TryBindCandidate(candidate, shifted, instance, argumentNodes, explicitGenerics, out var method, out var arguments))
             {
                 var callInstance = shifted || method.IsStatic ? null : instance;
-                return Expression.Call(callInstance, method, arguments);
+                return Expression.Call(callInstance, Approve(method), arguments);
             }
         }
 
@@ -902,7 +998,11 @@ internal sealed class NodeToExpressionConverter
             }
         }
 
-        foreach (var candidate in type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+        var candidates = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .OrderBy(c => c.GetParameters().Length)
+            .ThenBy(c => c.ToString(), StringComparer.Ordinal);
+
+        foreach (var candidate in candidates)
         {
             var parameters = candidate.GetParameters();
             if (parameters.Length != argumentNodes.Count)
@@ -989,7 +1089,7 @@ internal sealed class NodeToExpressionConverter
     {
         if (node.AddMethod is { DeclaringType: not null, ParameterTypes: not null })
         {
-            var addMethod = MemberResolver.ResolveMethod(node.AddMethod, _resolver);
+            var addMethod = Approve(MemberResolver.ResolveMethod(node.AddMethod, _resolver));
             var arguments = DecodeArguments(node.Arguments, addMethod.GetParameters(), 0);
             return Expression.ElementInit(addMethod, arguments);
         }
@@ -1008,7 +1108,7 @@ internal sealed class NodeToExpressionConverter
             try
             {
                 var arguments = DecodeArguments(node.Arguments, candidate.GetParameters(), 0);
-                return Expression.ElementInit(candidate, arguments);
+                return Expression.ElementInit(Approve(candidate), arguments);
             }
             catch (ExpressionSerializationException)
             {
@@ -1105,7 +1205,7 @@ internal sealed class NodeToExpressionConverter
                 c.TestValues.Select(v => Visit(v, switchValue.Type)).ToArray()))
             .ToArray();
         var defaultBody = node.DefaultBody is null ? null : Visit(node.DefaultBody, null);
-        var comparison = node.Comparison is null ? null : MemberResolver.ResolveMethod(node.Comparison, _resolver);
+        var comparison = node.Comparison is null ? null : Approve(MemberResolver.ResolveMethod(node.Comparison, _resolver));
         var type = node.Type is null ? null : Resolve(node.Type);
 
         return Expression.Switch(type, switchValue, defaultBody, comparison, cases);
@@ -1230,6 +1330,19 @@ internal sealed class NodeToExpressionConverter
         var label = Expression.Label(type, node.Name);
         _labels.Add(node.Id, label);
         return label;
+    }
+
+
+    /// <summary>Applies the configured <see cref="ExpressionSerializerOptions.MethodFilter"/> gate.</summary>
+    private MethodInfo Approve(MethodInfo method)
+    {
+        if (_options.MethodFilter is { } filter && !filter(method))
+        {
+            throw new ExpressionSerializationException(
+                $"Method '{method.DeclaringType}.{method.Name}' was rejected by the configured MethodFilter.");
+        }
+
+        return method;
     }
 
     private static T RequireBody<T>(T? value, string what)
