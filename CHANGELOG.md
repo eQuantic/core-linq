@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.2.0](https://github.com/eQuantic/core-linq/compare/v3.1.0...v3.2.0) (2026-07-18)
+
+### Features
+
+* typed query collections for request envelopes ([a122822](https://github.com/eQuantic/core-linq/commit/a122822f75342c009568de4da72b379264831e8a))
+
 ## [3.1.0](https://github.com/eQuantic/core-linq/compare/v3.0.0...v3.1.0) (2026-07-18)
 
 ### Features
