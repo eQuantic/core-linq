@@ -19,8 +19,9 @@ var results = orders.Where(spec.SatisfiedBy());
 
 - `DirectSpecification`, `TrueSpecification`, `And`/`AndAlso`, `Or`/`OrElse`, `Not` — parameters are
   rebound (no `Invoke`), so composed expressions stay translatable by LINQ providers such as EF.
-- `ExpressionBuilder` exposes the same composition as extension methods over
-  `Expression<Func<T, bool>>`.
+- Composition is powered by the engine's `PredicateExtensions`
+  (`eQuantic.Linq.Expressions`), which offers the same `AndAlso`/`OrElse`/`Not` directly over
+  `Expression<Func<T, bool>>` when you don't need the pattern.
 
 ## Specifications from serialized payloads
 
@@ -35,8 +36,13 @@ var query = orders.Where((spec & onlyActive).SatisfiedBy());
 ```
 
 Everything the engine offers applies: root-anchored type inference, strict type-resolution policies
-for untrusted payloads and DTO→entity casting via a customized `ExpressionSerializer`.
+for untrusted payloads (`ExpressionSerializer.CreateSecure`) and DTO→entity casting via a
+customized `ExpressionSerializer`. The parsed filter stays available as `spec.Model` for onward
+transport.
 
-Full documentation: <https://github.com/eQuantic/core-linq>
+## Learn more
 
-MIT © eQuantic Systems
+[ASP.NET Core & Specifications guide](https://github.com/eQuantic/core-linq/blob/main/docs/aspnetcore-and-specifications.md) ·
+[all guides](https://github.com/eQuantic/core-linq/tree/main/docs)
+
+MIT © eQuantic Tech

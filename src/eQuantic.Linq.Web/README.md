@@ -59,9 +59,29 @@ var page = EntityQuery.Parse<OrderDto>(qs).Cast(cast).Apply(dbContext.Orders);
 ## Transport bridge
 
 Every parsed filter is exposed as a serializable `ExpressionModel<T>`
-(`EntityQuery<T>.FilterModel`, `QueryFilter.ParseModel<T>`), so a query received on a web endpoint
-can be re-serialized to JSON and forwarded to another service unchanged.
+(`EntityQuery<T>.FilterModel`, `QueryFilter.ParseModel<T>`) — and the *whole* query (filter +
+sorts + paging + projection) round-trips as one JSON document:
 
-Full documentation: <https://github.com/eQuantic/core-linq>
+```csharp
+QueryModel<Order> document = query.ToQueryModel();            // serializable POCO
+var revived = document.ToEntityQuery(options).Apply(source);  // anywhere else
+```
 
-MIT © eQuantic Systems
+## Semantics & hardening
+
+- **Automatic null guards** (`NullGuardMode.Auto`, default): predicates applied to pure
+  LINQ-to-objects sources get C# `?.`-style protection on deep paths; relational providers receive
+  the clean tree (SQL is null-safe natively).
+- **Untrusted input**: `new QueryStringOptions().UseStrictSerializer(typeof(Order), …)` locks type
+  and method resolution to your contracts. Invalid syntax throws `QueryStringParseException` with
+  position information.
+- Parsed filters are cached per options instance (`CacheParsedFilters`).
+
+## Learn more
+
+[Query-string syntax reference](https://github.com/eQuantic/core-linq/blob/main/docs/query-string-syntax.md) ·
+[DTO casting](https://github.com/eQuantic/core-linq/blob/main/docs/dto-casting.md) ·
+[security](https://github.com/eQuantic/core-linq/blob/main/docs/security.md) ·
+[all guides](https://github.com/eQuantic/core-linq/tree/main/docs)
+
+MIT © eQuantic Tech

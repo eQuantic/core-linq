@@ -46,15 +46,30 @@ app.MapGet("/orders", (EntityQueryModel<OrderDto> query, AppDb db) =>
     query.Query.Cast(OrderCasts.ToEntity).Apply(db.Orders));
 ```
 
+## Whole queries as JSON bodies
+
+POST-style search endpoints can bind the serializable envelope directly — filter, sorts, paging and
+projection in one document:
+
+```csharp
+app.MapPost("/orders/search", (QueryModel<Order> body, AppDb db) =>
+    Results.Ok(body.ToEntityQuery(options).Apply(db.Orders).ToList()));
+```
+
 ## Extras
 
 - `Request.ParseEntityQuery<T>()` — binding-free parsing wherever you have an `HttpRequest`.
 - `AddEntityQueryBinding` also prepares MVC and minimal-API JSON options so serialized
   `ExpressionModel<T>` payloads (including lean hand-written ones) bind from request bodies —
   string enums, out-of-order `$type` discriminators and named floating-point literals included.
-- Harden untrusted input by configuring a strict-mode `ExpressionSerializer` in
-  `QueryStringOptions`.
+- Harden untrusted input with
+  `AddEntityQueryBinding(o => o.UseStrictSerializer(typeof(Order), …))`.
 
-Full documentation: <https://github.com/eQuantic/core-linq>
+## Learn more
 
-MIT © eQuantic Systems
+[ASP.NET Core & Specifications guide](https://github.com/eQuantic/core-linq/blob/main/docs/aspnetcore-and-specifications.md) ·
+[query-string syntax](https://github.com/eQuantic/core-linq/blob/main/docs/query-string-syntax.md) ·
+[security](https://github.com/eQuantic/core-linq/blob/main/docs/security.md) ·
+[all guides](https://github.com/eQuantic/core-linq/tree/main/docs)
+
+MIT © eQuantic Tech

@@ -63,13 +63,45 @@ var cast = ExpressionCast.Create<OrderDto, Order>(o => o
 Expression<Func<Order, bool>> where = cast.Predicate(dtoPredicate);
 ```
 
+## Composition & helpers
+
+Provider-friendly predicate composition (parameters rebound — no `Invoke`), member-path bridging
+and model-direct querying:
+
+```csharp
+var filter = PredicateBuilder.True<Order>()
+    .AndAlso(o => o.Total > 100m)
+    .AndAlso(o => o.Customer.IsVip);            // also Or/OrElse/Not/Compose
+
+var path     = selector.GetMemberPath();                                // o => o.Customer.Name → "Customer.Name"
+var back     = MemberPathExtensions.ToSelector<Order>("customer.name"); // string path → typed lambda
+
+db.Orders.Where(model)                           // ExpressionModel<Order> straight onto IQueryable
+         .OrderByPath("customer.name").ThenByPath("total", descending: true);
+```
+
+`NullGuards.Apply(predicate)` (or `predicate.WithNullGuards()`) rewrites deep member chains with
+C# `?.`-style protection for LINQ-to-objects execution.
+
 ## Security & performance
 
-- Strict type resolution for untrusted payloads: allow-lists plus explicit contract registration
-  (`TypeResolutionOptions`); everything else throws.
-- Process-wide reflection caches, interpreter-based closure folding and compiled anonymous-type
-  accessors keep hot paths reflection-free.
+- One-liner hardening for untrusted payloads:
+  `ExpressionSerializer.CreateSecure(typeof(Order), …)` — strict type resolution locked to your
+  contract types, a method allow-list, and tightened depth/node/anonymous-type caps. Fine-grained
+  policies via `TypeResolutionOptions` and `MethodFilter`.
+- Nothing executes at deserialization time — decoding only resolves types/members and assembles an
+  inert tree.
+- Process-wide reflection caches, interpreter-based closure folding, compiled anonymous-type
+  accessors and deterministic overload binding keep hot paths reflection-free and reproducible.
 
-Full documentation: <https://github.com/eQuantic/core-linq>
+## Learn more
 
-MIT © eQuantic Systems
+Educational guides (concepts, hand-written payloads, internals, FAQ):
+[getting started](https://github.com/eQuantic/core-linq/blob/main/docs/getting-started.md) ·
+[the model & inference](https://github.com/eQuantic/core-linq/blob/main/docs/expression-model.md) ·
+[DTO casting](https://github.com/eQuantic/core-linq/blob/main/docs/dto-casting.md) ·
+[security](https://github.com/eQuantic/core-linq/blob/main/docs/security.md) ·
+[extensions](https://github.com/eQuantic/core-linq/blob/main/docs/extensions.md) ·
+[how it works](https://github.com/eQuantic/core-linq/blob/main/docs/how-it-works.md)
+
+MIT © eQuantic Tech

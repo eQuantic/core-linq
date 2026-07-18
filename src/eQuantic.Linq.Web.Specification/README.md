@@ -21,9 +21,12 @@ var results = orders.Where((fromClient & visible).SatisfiedBy());
 - Parsing is eager — invalid syntax fails at construction with position information.
 - The parsed filter stays available as a serializable `ExpressionModel<T>` (`spec.Model`) so it can
   be forwarded to another service unchanged.
-- Harden untrusted input by supplying a `QueryStringOptions` with a strict-mode
-  `ExpressionSerializer`.
+- Harden untrusted input with `new QueryStringOptions().UseStrictSerializer(typeof(Order), …)`.
 
-Full documentation: <https://github.com/eQuantic/core-linq>
+## Learn more
 
-MIT © eQuantic Systems
+[ASP.NET Core & Specifications guide](https://github.com/eQuantic/core-linq/blob/main/docs/aspnetcore-and-specifications.md) ·
+[query-string syntax reference](https://github.com/eQuantic/core-linq/blob/main/docs/query-string-syntax.md) ·
+[all guides](https://github.com/eQuantic/core-linq/tree/main/docs)
+
+MIT © eQuantic Tech
