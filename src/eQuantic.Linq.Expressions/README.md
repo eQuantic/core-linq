@@ -70,6 +70,6 @@ Expression<Func<Order, bool>> where = cast.Predicate(dtoPredicate);
 - Process-wide reflection caches, interpreter-based closure folding and compiled anonymous-type
   accessors keep hot paths reflection-free.
 
-Full documentation: <https://github.com/eQuantic/equantic-expression>
+Full documentation: <https://github.com/eQuantic/core-linq>
 
 MIT © eQuantic Systems

@@ -12,7 +12,7 @@
         <PackageId>eQuantic.Linq.Expressions</PackageId>
         <PackageTags>eQuantic;Linq;Expressions;ExpressionTree;Serialization;Json;RemoteQuery;IQueryable;Dto;Cast</PackageTags>
         <PackageReleaseNotes>First preview: full-fidelity expression⇄JSON serialization (84/85 ExpressionTypes, all 63 Queryable operators), root-anchored ExpressionModel&lt;TRoot&gt; with type inference, strict type-resolution security, DTO→entity ExpressionCast with computed maps and column fallback.</PackageReleaseNotes>
-        <PackageProjectUrl>https://github.com/eQuantic/equantic-expression</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
         <PackageOutputPath>../artifacts/</PackageOutputPath>
         <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
         <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
@@ -24,7 +24,7 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>Icon.png</PackageIcon>
-        <RepositoryUrl>https://github.com/eQuantic/equantic-expression</RepositoryUrl>
+        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <NeutralLanguage>en</NeutralLanguage>
         <IncludeSymbols>true</IncludeSymbols>

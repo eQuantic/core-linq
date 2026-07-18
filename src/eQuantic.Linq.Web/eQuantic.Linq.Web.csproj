@@ -12,7 +12,7 @@
         <PackageId>eQuantic.Linq.Web</PackageId>
         <PackageTags>eQuantic;Linq;Expressions;QueryString;Filter;Sort;Rest;OData;Web;Paging;Projection</PackageTags>
         <PackageReleaseNotes>First preview: full filter grammar (comparisons, strings, logical composition, any/all, aggregates, method segments, in/nin, null tests, quoted values), sorting, paging, anonymous projections with aliases, EntityQuery&lt;T&gt; with DTO→entity Cast, and ExpressionModel transport bridge.</PackageReleaseNotes>
-        <PackageProjectUrl>https://github.com/eQuantic/equantic-expression</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
         <PackageOutputPath>../artifacts/</PackageOutputPath>
         <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
         <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
@@ -24,7 +24,7 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>Icon.png</PackageIcon>
-        <RepositoryUrl>https://github.com/eQuantic/equantic-expression</RepositoryUrl>
+        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <NeutralLanguage>en</NeutralLanguage>
         <IncludeSymbols>true</IncludeSymbols>

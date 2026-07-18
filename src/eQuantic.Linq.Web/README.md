@@ -62,6 +62,6 @@ Every parsed filter is exposed as a serializable `ExpressionModel<T>`
 (`EntityQuery<T>.FilterModel`, `QueryFilter.ParseModel<T>`), so a query received on a web endpoint
 can be re-serialized to JSON and forwarded to another service unchanged.
 
-Full documentation: <https://github.com/eQuantic/equantic-expression>
+Full documentation: <https://github.com/eQuantic/core-linq>
 
 MIT © eQuantic Systems
