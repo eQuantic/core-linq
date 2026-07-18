@@ -156,7 +156,7 @@ public sealed class EntityQuery<T>
 
         if (Filter is not null)
         {
-            query = query.Where(Filter);
+            query = query.Where(QueryApplier.GuardIfNeeded(Filter, source, _options.NullGuards));
         }
 
         query = QueryApplier.ApplySorts(query, Sorts);
@@ -256,6 +256,17 @@ public sealed class EntityQuery<T>
 /// <summary>Shared dynamic application helpers.</summary>
 internal static class QueryApplier
 {
+    /// <summary>Auto-identification: EnumerableQuery = pure LINQ-to-objects → guard; real providers stay clean.</summary>
+    public static System.Linq.Expressions.Expression<Func<T, bool>> GuardIfNeeded<T>(
+        System.Linq.Expressions.Expression<Func<T, bool>> predicate,
+        IQueryable<T> source,
+        NullGuardMode mode) => mode switch
+    {
+        NullGuardMode.Always => eQuantic.Linq.Expressions.NullGuards.Apply(predicate),
+        NullGuardMode.Auto when source is EnumerableQuery => eQuantic.Linq.Expressions.NullGuards.Apply(predicate),
+        _ => predicate,
+    };
+
     public static IQueryable<T> ApplySorts<T>(IQueryable<T> query, IReadOnlyList<QuerySort<T>> sorts)
     {
         var first = true;

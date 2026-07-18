@@ -44,6 +44,9 @@ public sealed class QueryStringOptions
         return this;
     }
 
+    /// <summary>Null-guard injection policy for applied filters. Defaults to <see cref="NullGuardMode.Auto"/>.</summary>
+    public NullGuardMode NullGuards { get; set; } = NullGuardMode.Auto;
+
     /// <summary>
     /// Caches parsed filter predicates per options instance (APIs receive the same filters over and
     /// over; expressions are immutable and safely reusable). Enabled by default.

@@ -8,8 +8,11 @@ public static class QueryableQueryStringExtensions
     /// <param name="source">Queryable source.</param>
     /// <param name="filter">Filter expression, e.g. <c>total:gt(100),items:any(price:gt(50))</c>.</param>
     /// <param name="options">Syntax options; defaults apply when omitted.</param>
-    public static IQueryable<T> WhereQueryString<T>(this IQueryable<T> source, string filter, QueryStringOptions? options = null) =>
-        source.Where(QueryFilter.Parse<T>(filter, options));
+    public static IQueryable<T> WhereQueryString<T>(this IQueryable<T> source, string filter, QueryStringOptions? options = null)
+    {
+        options ??= QueryStringOptions.Default;
+        return source.Where(QueryApplier.GuardIfNeeded(QueryFilter.Parse<T>(filter, options), source, options.NullGuards));
+    }
 
     /// <summary>Orders the source with a query-string ordering expression.</summary>
     /// <typeparam name="T">Element type.</typeparam>
