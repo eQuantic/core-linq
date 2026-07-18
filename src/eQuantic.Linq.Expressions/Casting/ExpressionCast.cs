@@ -64,6 +64,20 @@ public sealed class ExpressionCast<TSource, TTarget>
         return new CastRewriter(_registry).Rewrite(lambda, typeof(TSource), typeof(TTarget));
     }
 
+    private LambdaExpression? _projection;
+
+    /// <summary>
+    /// Reverse direction: builds the materializer <c>TTarget → TSource</c> (entity → DTO) from the
+    /// same mappings — explicit maps are inlined, matching members (including column fallback) are
+    /// copied, nested registered collection pairs project element-wise, and members with no
+    /// counterpart are skipped.
+    /// </summary>
+    public Expression<Func<TTarget, TSource>> Project()
+    {
+        _projection ??= ProjectionBuilder.Build(typeof(TSource), typeof(TTarget), _registry);
+        return (Expression<Func<TTarget, TSource>>)_projection;
+    }
+
     /// <summary>Casts a serializable model over the source shape into a model over the target shape.</summary>
     /// <param name="model">Root-anchored model over <typeparamref name="TSource"/>.</param>
     /// <param name="serializer">Serializer used to decode/encode; <see cref="ExpressionSerializer.Default"/> when omitted.</param>

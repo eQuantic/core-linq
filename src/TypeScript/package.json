@@ -1,0 +1,8 @@
+{
+  "name": "@equantic/linq-querystring",
+  "version": "3.0.0-preview.1",
+  "description": "Typed builder for the eQuantic.Linq query-string filter syntax",
+  "main": "index.ts",
+  "license": "MIT",
+  "private": true
+}

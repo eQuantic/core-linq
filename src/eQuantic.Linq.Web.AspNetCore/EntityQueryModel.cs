@@ -14,8 +14,14 @@ namespace eQuantic.Linq.Web.AspNetCore;
 /// </code>
 /// </example>
 /// <typeparam name="T">Root entity type.</typeparam>
-public sealed class EntityQueryModel<T>
+public sealed class EntityQueryModel<T> : Microsoft.AspNetCore.Http.Metadata.IEndpointParameterMetadataProvider
 {
+    /// <summary>ApiExplorer/OpenAPI hook: invalid query strings produce HTTP 400.</summary>
+    /// <param name="parameter">Handler parameter being described.</param>
+    /// <param name="builder">Endpoint being built.</param>
+    public static void PopulateMetadata(ParameterInfo parameter, Microsoft.AspNetCore.Builder.EndpointBuilder builder) =>
+        builder.Metadata.Add(new Microsoft.AspNetCore.Http.ProducesResponseTypeMetadata(StatusCodes.Status400BadRequest));
+
     /// <summary>Creates the wrapper around a parsed query.</summary>
     /// <param name="query">Parsed entity query.</param>
     public EntityQueryModel(EntityQuery<T> query)

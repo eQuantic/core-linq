@@ -206,6 +206,31 @@ public sealed class EntityQuery<T>
     public EntityQuery<TTarget> Cast<TTarget>(Action<eQuantic.Linq.Expressions.Casting.CastOptions<T, TTarget>>? configure = null) =>
         Cast(eQuantic.Linq.Expressions.Casting.ExpressionCast.Create(configure));
 
+    /// <summary>
+    /// Captures the whole query — filter, ordering, paging and projection — as one serializable
+    /// <see cref="QueryModel{T}"/> document for transport between services.
+    /// </summary>
+    public QueryModel<T> ToQueryModel()
+    {
+        var serializer = _options.Serializer;
+
+        return new QueryModel<T>
+        {
+            Filter = FilterModel,
+            OrderBy = Sorts.Count == 0
+                ? null
+                : Sorts.Select(sort => new QuerySortModel
+                {
+                    Path = sort.Path,
+                    Direction = sort.Direction,
+                    Key = serializer.ToModel(sort.KeySelector, typeof(T)),
+                }).ToList(),
+            Skip = Skip,
+            Take = Take,
+            Select = Selector is null ? null : serializer.ToModel(Selector, typeof(T)),
+        };
+    }
+
     /// <summary>Applies the full query including the projection; falls back to <see cref="Apply"/> when no <c>select</c> was supplied.</summary>
     /// <param name="source">Queryable source.</param>
     public IQueryable ApplyWithSelection(IQueryable<T> source)
