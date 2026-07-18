@@ -3,43 +3,13 @@
     <PropertyGroup>
         <Title>eQuantic Linq Web</Title>
         <Description>REST-friendly query-string syntax for eQuantic.Linq.Expressions: parse filters (property:op(value), and/or/not, any/all, aggregates, method segments), sorting, paging and anonymous projections from URLs into fully typed LINQ expression trees — with DTO→entity casting support.</Description>
-        <Copyright>2026 eQuantic Systems</Copyright>
         <AssemblyTitle>eQuantic.Linq.Web</AssemblyTitle>
-        <Version>1.0.0-preview.1</Version>
-        <Authors>eQuantic Systems</Authors>
         <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
         <AssemblyName>eQuantic.Linq.Web</AssemblyName>
         <PackageId>eQuantic.Linq.Web</PackageId>
         <PackageTags>eQuantic;Linq;Expressions;QueryString;Filter;Sort;Rest;OData;Web;Paging;Projection</PackageTags>
         <PackageReleaseNotes>First preview: full filter grammar (comparisons, strings, logical composition, any/all, aggregates, method segments, in/nin, null tests, quoted values), sorting, paging, anonymous projections with aliases, EntityQuery&lt;T&gt; with DTO→entity Cast, and ExpressionModel transport bridge.</PackageReleaseNotes>
-        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
-        <PackageOutputPath>../artifacts/</PackageOutputPath>
-        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-        <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-        <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>Icon.png</PackageIcon>
-        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <NeutralLanguage>en</NeutralLanguage>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <LangVersion>latest</LangVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Include="LICENSE" Pack="true" PackagePath="" />
-        <None Include="README.md" Pack="true" PackagePath="" />
-        <None Include="Icon.png" Pack="true" PackagePath="" />
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\eQuantic.Linq.Expressions\eQuantic.Linq.Expressions.csproj" />

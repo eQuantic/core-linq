@@ -3,43 +3,13 @@
     <PropertyGroup>
         <Title>eQuantic Linq Expressions</Title>
         <Description>Convert any .NET lambda/expression tree into a fully structured, serialization-friendly model (JSON) and rebuild the exact expression back. Supports every ExpressionType, the complete Queryable surface, closures, anonymous types, IQueryable pipelines with re-bindable roots, root-anchored typed models with type inference, and DTO→entity expression casting.</Description>
-        <Copyright>2026 eQuantic Systems</Copyright>
         <AssemblyTitle>eQuantic.Linq.Expressions</AssemblyTitle>
-        <Version>1.0.0-preview.1</Version>
-        <Authors>eQuantic Systems</Authors>
         <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
         <AssemblyName>eQuantic.Linq.Expressions</AssemblyName>
         <PackageId>eQuantic.Linq.Expressions</PackageId>
         <PackageTags>eQuantic;Linq;Expressions;ExpressionTree;Serialization;Json;RemoteQuery;IQueryable;Dto;Cast</PackageTags>
         <PackageReleaseNotes>First preview: full-fidelity expression⇄JSON serialization (84/85 ExpressionTypes, all 63 Queryable operators), root-anchored ExpressionModel&lt;TRoot&gt; with type inference, strict type-resolution security, DTO→entity ExpressionCast with computed maps and column fallback.</PackageReleaseNotes>
-        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
-        <PackageOutputPath>../artifacts/</PackageOutputPath>
-        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-        <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-        <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>Icon.png</PackageIcon>
-        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <NeutralLanguage>en</NeutralLanguage>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <LangVersion>latest</LangVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Include="LICENSE" Pack="true" PackagePath="" />
-        <None Include="README.md" Pack="true" PackagePath="" />
-        <None Include="Icon.png" Pack="true" PackagePath="" />
-    </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
         <PackageReference Include="System.Text.Json" Version="10.0.0" />

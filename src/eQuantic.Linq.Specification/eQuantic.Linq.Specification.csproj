@@ -3,43 +3,13 @@
     <PropertyGroup>
         <Title>eQuantic Linq Specification</Title>
         <Description>Specification pattern for LINQ: composable specifications (And/AndAlso/Or/OrElse/Not with expression parameter rebinding, operator overloads) plus ExpressionModelSpecification, which materializes serialized eQuantic.Linq.Expressions models — or their raw JSON — into typed predicates.</Description>
-        <Copyright>2026 eQuantic Systems</Copyright>
         <AssemblyTitle>eQuantic.Linq.Specification</AssemblyTitle>
-        <Version>1.0.0-preview.1</Version>
-        <Authors>eQuantic Systems</Authors>
         <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
         <AssemblyName>eQuantic.Linq.Specification</AssemblyName>
         <PackageId>eQuantic.Linq.Specification</PackageId>
         <PackageTags>eQuantic;Linq;Specification;SpecificationPattern;Expressions;DDD</PackageTags>
         <PackageReleaseNotes>First preview: the classic eQuantic specification pattern rebuilt on the v3 engine, including ExpressionModelSpecification for serialized expression payloads.</PackageReleaseNotes>
-        <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>
-        <PackageOutputPath>../artifacts/</PackageOutputPath>
-        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-        <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-        <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>Icon.png</PackageIcon>
-        <RepositoryUrl>https://github.com/eQuantic/core-linq</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <NeutralLanguage>en</NeutralLanguage>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <LangVersion>latest</LangVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Include="LICENSE" Pack="true" PackagePath="" />
-        <None Include="README.md" Pack="true" PackagePath="" />
-        <None Include="Icon.png" Pack="true" PackagePath="" />
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\eQuantic.Linq.Expressions\eQuantic.Linq.Expressions.csproj" />
