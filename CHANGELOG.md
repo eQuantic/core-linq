@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.2.1](https://github.com/eQuantic/core-linq/compare/v3.2.0...v3.2.1) (2026-07-18)
+
+### Bug Fixes
+
+* query collections belong to the pure web package ([d913e45](https://github.com/eQuantic/core-linq/commit/d913e45700abe392dd47510ad16b56fd6b8dd6c0))
+
 ## [3.2.0](https://github.com/eQuantic/core-linq/compare/v3.1.0...v3.2.0) (2026-07-18)
 
 ### Features
