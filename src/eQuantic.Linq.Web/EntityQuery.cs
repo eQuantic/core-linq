@@ -176,7 +176,8 @@ public sealed class EntityQuery<T>
 
     /// <summary>
     /// Casts this query — authored over the exposed DTO shape — onto the internal entity shape:
-    /// filter, sorts and projection are rewritten through the given <see cref="ExpressionCast{TSource, TTarget}"/>.
+    /// filter, sorts and projection are rewritten through the given
+    /// <see cref="eQuantic.Linq.Expressions.Casting.ExpressionCast{TSource, TTarget}"/>.
     /// </summary>
     /// <typeparam name="TTarget">Entity type the query will actually run on.</typeparam>
     /// <param name="cast">Reusable cast configuration.</param>

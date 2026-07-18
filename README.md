@@ -1,11 +1,13 @@
 # eQuantic.Linq
 
-Two packages built on one engine:
+Four packages built on one engine:
 
 | Package | Purpose |
 |---------|---------|
-| **eQuantic.Linq.Expressions** | Convert any .NET expression tree into a structured, serialization-friendly model (JSON) and rebuild the exact expression back. |
+| **eQuantic.Linq.Expressions** | Convert any .NET expression tree into a structured, serialization-friendly model (JSON) and rebuild the exact expression back. Includes DTO→entity casting. |
 | **eQuantic.Linq.Web** | Query-string syntax (`filter`, `orderBy`, `skip`, `take`, `select`) parsed straight into typed expression trees through the same engine. |
+| **eQuantic.Linq.Specification** | The classic composable specification pattern, plus `ExpressionModelSpecification` for serialized expression payloads. |
+| **eQuantic.Linq.Web.Specification** | `QueryStringSpecification` — REST filter query strings as composable specifications. |
 
 # eQuantic.Linq.Expressions
 
@@ -289,6 +291,29 @@ Expression<Func<Order, bool>> where = cast.Predicate(dtoPredicate);
   target expression, e.g. `e => e.Status.ToString()`).
 - `cast.Model(model)` casts serialized `ExpressionModel<TDto>` payloads directly — querystring →
   JSON → entity, end to end.
+
+# eQuantic.Linq.Specification
+
+The classic composable specification pattern (operator overloads, `And`/`AndAlso`/`Or`/`OrElse`/`Not`
+with parameter rebinding — provider-friendly), rebuilt on the v3 engine with two new entry points:
+
+```csharp
+using eQuantic.Linq.Specification;
+using eQuantic.Linq.Web.Specification;
+
+// from a serialized expression payload (ExpressionModel<T> or raw JSON)
+var fromWire = new ExpressionModelSpecification<Order>(json);
+
+// from a REST filter query string (eQuantic.Linq.Web.Specification)
+var fromClient = new QueryStringSpecification<Order>("status:in(Paid|Shipped),items.sum(price):gt(100)");
+
+// compose with domain rules and execute
+var visible = new DirectSpecification<Order>(o => !o.Deleted);
+var results = orders.Where((fromClient & visible).SatisfiedBy());
+```
+
+Both expose their parsed filter as a serializable `ExpressionModel<T>` (`spec.Model`) for onward
+transport.
 
 ## License
 
