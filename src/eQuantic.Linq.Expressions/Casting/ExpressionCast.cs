@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 namespace eQuantic.Linq.Expressions.Casting;
 
 /// <summary>Factory for <see cref="ExpressionCast{TSource, TTarget}"/> instances.</summary>
+#if NET8_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Expression casting re-binds generic methods and re-emits anonymous types at runtime; it is not compatible with Native AOT.")]
+#endif
 public static class ExpressionCast
 {
     /// <summary>

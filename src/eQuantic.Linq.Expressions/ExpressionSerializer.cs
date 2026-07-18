@@ -11,6 +11,10 @@ namespace eQuantic.Linq.Expressions;
 /// (<see cref="ExpressionNode"/>) or its JSON form, and rebuilds the exact expression back.
 /// Thread-safe; reuse instances.
 /// </summary>
+#if NET8_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Expression serialization emits anonymous types and compiles expressions at runtime; it is not compatible with Native AOT.")]
+[System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Type and member resolution uses reflection over payload-supplied names; trimming may remove required members.")]
+#endif
 public sealed class ExpressionSerializer
 {
     /// <summary>Shared serializer with default options.</summary>

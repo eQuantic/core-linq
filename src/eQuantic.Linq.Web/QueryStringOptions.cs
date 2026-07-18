@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using eQuantic.Linq.Expressions;
 
 namespace eQuantic.Linq.Web;
@@ -40,5 +42,29 @@ public sealed class QueryStringOptions
     {
         Serializer = ExpressionSerializer.CreateSecure(knownTypes);
         return this;
+    }
+
+    /// <summary>
+    /// Caches parsed filter predicates per options instance (APIs receive the same filters over and
+    /// over; expressions are immutable and safely reusable). Enabled by default.
+    /// </summary>
+    public bool CacheParsedFilters { get; set; } = true;
+
+    private const int FilterCacheCapacity = 512;
+    private readonly ConcurrentDictionary<(Type Root, string Filter), LambdaExpression> _filterCache = new();
+
+    internal Expression<Func<T, bool>> GetOrAddFilter<T>(string filter, Func<string, Expression<Func<T, bool>>> factory)
+    {
+        if (!CacheParsedFilters)
+        {
+            return factory(filter);
+        }
+
+        if (_filterCache.Count >= FilterCacheCapacity)
+        {
+            _filterCache.Clear();
+        }
+
+        return (Expression<Func<T, bool>>)_filterCache.GetOrAdd((typeof(T), filter), _ => factory(filter));
     }
 }

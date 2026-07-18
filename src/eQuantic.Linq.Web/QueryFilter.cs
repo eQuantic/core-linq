@@ -35,6 +35,6 @@ public static class QueryFilter
     public static Expression<Func<T, bool>> Parse<T>(string filter, QueryStringOptions? options = null)
     {
         options ??= QueryStringOptions.Default;
-        return options.Serializer.ToPredicate(ParseModel<T>(filter, options));
+        return options.GetOrAddFilter<T>(filter, f => options.Serializer.ToPredicate(ParseModel<T>(f, options)));
     }
 }
