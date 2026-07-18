@@ -23,6 +23,7 @@
         <ProjectReference Include="..\..\src\eQuantic.Linq.Web\eQuantic.Linq.Web.csproj" />
         <ProjectReference Include="..\..\src\eQuantic.Linq.Specification\eQuantic.Linq.Specification.csproj" />
         <ProjectReference Include="..\..\src\eQuantic.Linq.Web.Specification\eQuantic.Linq.Web.Specification.csproj" />
+        <ProjectReference Include="..\..\src\eQuantic.Linq.Web.AspNetCore\eQuantic.Linq.Web.AspNetCore.csproj" />
     </ItemGroup>
 
     <ItemGroup>

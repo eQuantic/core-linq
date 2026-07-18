@@ -8,6 +8,7 @@ Four packages built on one engine:
 | **eQuantic.Linq.Web** | Query-string syntax (`filter`, `orderBy`, `skip`, `take`, `select`) parsed straight into typed expression trees through the same engine. |
 | **eQuantic.Linq.Specification** | The classic composable specification pattern, plus `ExpressionModelSpecification` for serialized expression payloads. |
 | **eQuantic.Linq.Web.Specification** | `QueryStringSpecification` — REST filter query strings as composable specifications. |
+| **eQuantic.Linq.Web.AspNetCore** | `EntityQuery<T>` binding for MVC controllers and Minimal APIs (`EntityQueryModel<T>`), with parse errors as 400 responses. |
 
 # eQuantic.Linq.Expressions
 
