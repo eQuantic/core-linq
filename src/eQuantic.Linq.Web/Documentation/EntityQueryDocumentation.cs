@@ -122,7 +122,21 @@ public static class EntityQueryDocumentation
         return new EntityQueryDocumentationModel(entityType.Name, catalog.Select(p => p.Display).ToList(), parameters);
     }
 
-    private sealed record CatalogEntry(string Path, string Display, Type Type, bool IsCollection);
+    private sealed class CatalogEntry
+    {
+        public CatalogEntry(string path, string display, Type type, bool isCollection)
+        {
+            Path = path;
+            Display = display;
+            Type = type;
+            IsCollection = isCollection;
+        }
+
+        public string Path { get; }
+        public string Display { get; }
+        public Type Type { get; }
+        public bool IsCollection { get; }
+    }
 
     private static List<CatalogEntry> BuildCatalog(Type entityType)
     {
@@ -146,7 +160,7 @@ public static class EntityQueryDocumentation
 
             if (IsSimple(propertyType))
             {
-                entries.Add(new CatalogEntry(path, Describe(path, propertyType, alias), propertyType, IsCollection: false));
+                entries.Add(new CatalogEntry(path, Describe(path, propertyType, alias), propertyType, isCollection: false));
             }
             else if (TryGetElementType(propertyType, out var elementType))
             {
@@ -154,7 +168,7 @@ public static class EntityQueryDocumentation
                 var display = $"`{path}` — collection of {elementType.Name}" +
                               (elementNames.Count > 0 ? $" ({string.Join(", ", elementNames)})" : string.Empty) +
                               "; use with `any`/`all`/aggregates";
-                entries.Add(new CatalogEntry(path, display, elementType, IsCollection: true));
+                entries.Add(new CatalogEntry(path, display, elementType, isCollection: true));
             }
             else if (depth == 0 && propertyType.IsClass)
             {
