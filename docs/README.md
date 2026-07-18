@@ -27,3 +27,6 @@ eQuantic.Linq.Expressions          the engine: expression ⇄ JSON, inference, c
 ```
 
 Start with guide 1 — it takes ten minutes and everything else builds on it.
+
+Maintainers: the automated release flow (semantic-release, commit types → versions, channels) is
+described in [releasing.md](releasing.md).

@@ -1,8 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-## [1.0.0-preview.1] - 2026-07-18
+## [3.0.0-preview.1] - 2026-07-18
 
 ### Added
 
