@@ -30,6 +30,10 @@ internal static class ReflectionCache
                 map[group.Key] = group
                     .OrderBy(m => m.IsGenericMethodDefinition ? 1 : 0)
                     .ThenBy(m => m.GetParameters().Length)
+                    // char overloads (Contains(char), StartsWith(char)…) lose to their string
+                    // twins: string coercion would happily produce a char, but relational
+                    // providers often cannot translate the char forms.
+                    .ThenBy(m => m.GetParameters().Count(p => p.ParameterType == typeof(char)))
                     .ThenBy(m => m.ToString(), StringComparer.Ordinal)
                     .ToArray();
             }
