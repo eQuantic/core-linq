@@ -1,0 +1,24 @@
+{
+  "$type": "lambda",
+  "body": {
+    "$type": "call",
+    "method": { "name": "sum" },
+    "object": {
+      "$type": "call",
+      "method": { "name": "where" },
+      "object": { "$type": "queryRoot", "elementType": { "name": "int" } },
+      "arguments": [
+        {
+          "$type": "lambda",
+          "parameters": [ { "name": "n" } ],
+          "body": {
+            "$type": "binary",
+            "nodeType": "GreaterThan",
+            "left": { "$type": "parameter", "name": "n" },
+            "right": { "$type": "constant", "value": 3 }
+          }
+        }
+      ]
+    }
+  }
+}

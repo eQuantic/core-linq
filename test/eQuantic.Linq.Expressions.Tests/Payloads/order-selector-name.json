@@ -1,0 +1,11 @@
+{
+  "body": {
+    "$type": "call",
+    "method": { "name": "toUpper" },
+    "object": {
+      "$type": "member",
+      "member": { "name": "name" },
+      "expression": { "$type": "member", "member": { "name": "customer" }, "expression": { "$type": "parameter" } }
+    }
+  }
+}

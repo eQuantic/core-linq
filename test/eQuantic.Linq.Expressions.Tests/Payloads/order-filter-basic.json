@@ -1,0 +1,18 @@
+{
+  "body": {
+    "$type": "binary",
+    "nodeType": "AndAlso",
+    "left": {
+      "$type": "binary",
+      "nodeType": "GreaterThan",
+      "left": { "$type": "member", "member": { "name": "total" }, "expression": { "$type": "parameter" } },
+      "right": { "$type": "constant", "value": 100 }
+    },
+    "right": {
+      "$type": "binary",
+      "nodeType": "NotEqual",
+      "left": { "$type": "member", "member": { "name": "status" }, "expression": { "$type": "parameter" } },
+      "right": { "$type": "constant", "value": "Cancelled" }
+    }
+  }
+}

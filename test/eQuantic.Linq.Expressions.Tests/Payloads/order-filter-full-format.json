@@ -1,0 +1,40 @@
+{
+  "$type": "lambda",
+  "delegateType": {
+    "name": "System.Func`2",
+    "genericArguments": [
+      { "name": "eQuantic.Linq.Expressions.Tests.TestModel.Order", "assembly": "eQuantic.Linq.Expressions.Tests" },
+      { "name": "bool" }
+    ]
+  },
+  "parameters": [
+    {
+      "id": 0,
+      "name": "o",
+      "type": { "name": "eQuantic.Linq.Expressions.Tests.TestModel.Order", "assembly": "eQuantic.Linq.Expressions.Tests" }
+    }
+  ],
+  "body": {
+    "$type": "binary",
+    "nodeType": "GreaterThanOrEqual",
+    "left": {
+      "$type": "member",
+      "member": {
+        "declaringType": { "name": "eQuantic.Linq.Expressions.Tests.TestModel.Order", "assembly": "eQuantic.Linq.Expressions.Tests" },
+        "name": "Total",
+        "kind": "Property"
+      },
+      "expression": {
+        "$type": "parameter",
+        "id": 0,
+        "name": "o",
+        "type": { "name": "eQuantic.Linq.Expressions.Tests.TestModel.Order", "assembly": "eQuantic.Linq.Expressions.Tests" }
+      }
+    },
+    "right": {
+      "$type": "constant",
+      "type": { "name": "decimal" },
+      "value": 250.50
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "body": {
+    "$type": "call",
+    "method": { "name": "any" },
+    "object": { "$type": "member", "member": { "name": "items" }, "expression": { "$type": "parameter" } },
+    "arguments": [
+      {
+        "$type": "lambda",
+        "parameters": [ { "name": "i" } ],
+        "body": {
+          "$type": "binary",
+          "nodeType": "AndAlso",
+          "left": {
+            "$type": "binary",
+            "nodeType": "Equal",
+            "left": { "$type": "member", "member": { "name": "category" }, "expression": { "$type": "parameter", "name": "i" } },
+            "right": { "$type": "constant", "value": "Tech" }
+          },
+          "right": {
+            "$type": "binary",
+            "nodeType": "GreaterThan",
+            "left": { "$type": "member", "member": { "name": "price" }, "expression": { "$type": "parameter", "name": "i" } },
+            "right": { "$type": "constant", "value": 50 }
+          }
+        }
+      }
+    ]
+  }
+}
