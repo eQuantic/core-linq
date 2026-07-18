@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using eQuantic.Linq.Expressions;
 
 namespace eQuantic.Linq.Specification;
 

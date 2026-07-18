@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using eQuantic.Linq.Expressions;
 using eQuantic.Linq.Specification;
 using eQuantic.Linq.Expressions.Tests.Support;
 using eQuantic.Linq.Expressions.Tests.TestModel;

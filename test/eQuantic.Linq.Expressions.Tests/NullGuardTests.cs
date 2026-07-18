@@ -25,13 +25,13 @@ public class NullGuardTests
         var options = new QueryStringOptions { NullGuards = NullGuardMode.Never };
         var query = TestData.OrdersQuery.WhereQueryString("customer.address.city:eq(Lisboa)", options);
 
-        Assert.Throws<NullReferenceException>(() => query.ToList());
+        Assert.Throws<NullReferenceException>(() => _ = query!.ToList());
     }
 
     [Test]
     public void Rewriter_is_usable_directly_on_csharp_predicates()
     {
-        Expression<Func<Order, bool>> raw = o => o.Customer.Address.City == "Lisboa";
+        Expression<Func<Order, bool>> raw = o => o.Customer.Address!.City == "Lisboa";
         var guarded = eQuantic.Linq.Expressions.NullGuards.Apply(raw).Compile();
 
         Assert.That(guarded(TestData.Orders[4]), Is.False, "null navigation propagates to false");
