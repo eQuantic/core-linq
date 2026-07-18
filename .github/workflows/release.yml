@@ -70,7 +70,7 @@ jobs:
       - name: Semantic release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
           GIT_AUTHOR_NAME: eQuantic Release Bot
           GIT_AUTHOR_EMAIL: noreply@equantic.tech
           GIT_COMMITTER_NAME: eQuantic Release Bot

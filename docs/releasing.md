@@ -34,17 +34,14 @@ prerelease tags are ignored there, which is why the marker isn't `3.0.0-preview.
 automated release is exactly **`3.0.0`**, and normal feat/fix flow continues from there
 (`3.0.1`, `3.1.0`, …).
 
-## First-time arming
+## Arming and gating
 
-Releases are **disarmed** until the NuGet key exists —
-[release-verify.sh](../.github/scripts/release-verify.sh) fails the pipeline *before* anything is
-tagged, committed or published. To arm:
-
-1. GitHub → Settings → Environments → create `nuget`.
-2. Add the environment secret `NUGET_API_KEY` (an api key from nuget.org with push scope).
-3. Optional but recommended: add yourself as a *required reviewer* on the environment — every
-   release then pauses for a manual approval click before anything runs.
-4. Re-run the Release workflow (or push the next commit).
+Without the `NUGET_KEY` secret (org-level in eQuantic, or set on the `nuget` environment),
+releases are **disarmed**: [release-verify.sh](../.github/scripts/release-verify.sh) fails the
+pipeline *before* anything is tagged, committed or published. With the key available, every
+qualifying push to `main` releases — the manual control is the `nuget` environment's
+*required reviewers* (Settings → Environments → `nuget`): with a reviewer configured, each
+release job pauses until someone approves it in the Actions UI.
 
 ## Channels
 
@@ -58,5 +55,4 @@ tagged, committed or published. To arm:
 - Mark breaking changes explicitly: `✨ feat!: …` and/or a `BREAKING CHANGE:` paragraph in the
   body. That's the only thing that produces a major bump.
 - A push that only contains non-releasing types simply results in "no release" — that's normal.
-- Secrets/config: `NUGET_API_KEY` lives in the `nuget` environment; `GITHUB_TOKEN` is the
-  workflow's own.
+- Secrets/config: `NUGET_KEY` is the eQuantic org secret; `GITHUB_TOKEN` is the workflow's own.
