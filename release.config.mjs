@@ -37,6 +37,9 @@ export default {
         { path: 'artifacts/packages/*.nupkg' },
         { path: 'artifacts/packages/*.snupkg' },
       ],
+      // GitHub rejects creating the default 'semantic-release' label on this repo,
+      // which would abort the failure-issue notification — create issues unlabeled.
+      labels: false,
     }],
   ],
 };
