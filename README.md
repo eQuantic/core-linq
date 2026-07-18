@@ -53,6 +53,8 @@ DTO/entity boundaries, and rebuild them anywhere as *real, provider-translatable
 | **eQuantic.Linq.Expressions** | The engine: expression ⇄ model ⇄ JSON, root-anchored inference, DTO→entity casting, predicate composition, null guards. |
 | **eQuantic.Linq.Web** | Query-string syntax (`filter`, `orderBy`, `skip`, `take`, `select`) parsed into typed expressions; `QueryModel<T>` whole-query documents. |
 | **eQuantic.Linq.Web.AspNetCore** | `EntityQuery<T>` binding for Minimal APIs and MVC, parse errors as 400s, JSON options prepared for expression payloads. |
+| **eQuantic.Linq.Web.Swashbuckle** | Swagger docs for the query surface: filter grammar, real entity paths and examples per endpoint. |
+| **eQuantic.Linq.Web.OpenApi** | The same documentation for the built-in `Microsoft.AspNetCore.OpenApi` (net10). |
 | **eQuantic.Linq.Specification** | The composable specification pattern on the v3 engine, plus `ExpressionModelSpecification` for serialized payloads. |
 | **eQuantic.Linq.Web.Specification** | `QueryStringSpecification` — client filter strings as composable specifications. |
 

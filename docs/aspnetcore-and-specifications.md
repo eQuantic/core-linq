@@ -46,6 +46,27 @@ public IActionResult Get(EntityQueryModel<Order> query) =>
 Parse failures land in `ModelState` (standard `ValidationProblem` 400). Prefer manual control?
 `Request.ParseEntityQuery<Order>(options)` does the same parse anywhere you hold an `HttpRequest`.
 
+## Documenting the query surface (OpenAPI)
+
+Bound query parameters are opaque to API consumers by default — Swagger shows an
+`EntityQueryModel<Order>` endpoint with no usable contract. Two packages fix that, one per
+OpenAPI stack:
+
+```csharp
+// Swashbuckle (eQuantic.Linq.Web.Swashbuckle):
+builder.Services.AddSwaggerGen(o => o.AddEntityQueryDocumentation());
+
+// Built-in Microsoft.AspNetCore.OpenApi, net10 (eQuantic.Linq.Web.OpenApi):
+builder.Services.AddOpenApi(o => o.AddEntityQueryDocumentation());
+```
+
+Each endpoint binding `EntityQuery<T>` / `EntityQueryModel<T>` then advertises the five
+parameters with the full [filter grammar](query-string-syntax.md), **the entity's real member
+paths** (camelCase, `customer.name`, collections with element members, enum values, `[Column]`
+aliases), examples generated from the actual members, and the 400 parse-error response. Custom
+key names (`FilterKey = "q"`) are honored — pass your `QueryStringOptions` (the OpenApi
+transformer also picks up the instance registered by `AddEntityQueryBinding`).
+
 ## Accepting whole queries as JSON
 
 For POST-style search endpoints, bind the serializable envelope directly:

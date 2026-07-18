@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Title>eQuantic Linq Web OpenApi</Title>
+        <Description>OpenAPI documentation for eQuantic.Linq query strings via Microsoft.AspNetCore.OpenApi: an operation transformer that documents the filter/orderBy/skip/take/select parameters per endpoint with the complete syntax, the entity's actual member paths (camelCase, enums, [Column] aliases, collections) and generated examples.</Description>
+        <AssemblyTitle>eQuantic.Linq.Web.OpenApi</AssemblyTitle>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+        <AssemblyName>eQuantic.Linq.Web.OpenApi</AssemblyName>
+        <PackageId>eQuantic.Linq.Web.OpenApi</PackageId>
+        <PackageTags>eQuantic;Linq;OpenApi;QueryString;Filter;Rest;Web;Documentation;MinimalApi</PackageTags>
+        <PackageReleaseNotes>First release: EntityQueryOperationTransformer documenting the query-string surface of EntityQuery/EntityQueryModel endpoints, with AddEntityQueryDocumentation registration.</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+        <!-- GHSA-v5pm-xwqc-g5wc: Microsoft.AspNetCore.OpenApi 10.0.10 floats on the vulnerable
+             Microsoft.OpenApi 2.0.0; pin the patched 2.x until the framework package moves -->
+        <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\eQuantic.Linq.Web.AspNetCore\eQuantic.Linq.Web.AspNetCore.csproj" />
+    </ItemGroup>
+</Project>

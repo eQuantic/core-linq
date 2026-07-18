@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Title>eQuantic Linq Web Swashbuckle</Title>
+        <Description>Swagger/OpenAPI documentation for eQuantic.Linq query strings via Swashbuckle: an operation filter that documents the filter/orderBy/skip/take/select parameters per endpoint with the complete syntax, the entity's actual member paths (camelCase, enums, [Column] aliases, collections) and generated examples.</Description>
+        <AssemblyTitle>eQuantic.Linq.Web.Swashbuckle</AssemblyTitle>
+        <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+        <AssemblyName>eQuantic.Linq.Web.Swashbuckle</AssemblyName>
+        <PackageId>eQuantic.Linq.Web.Swashbuckle</PackageId>
+        <PackageTags>eQuantic;Linq;Swashbuckle;Swagger;OpenApi;QueryString;Filter;Rest;Web;Documentation</PackageTags>
+        <PackageReleaseNotes>First release: EntityQueryOperationFilter documenting the query-string surface of EntityQuery/EntityQueryModel endpoints, with AddEntityQueryDocumentation registration.</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\eQuantic.Linq.Web.AspNetCore\eQuantic.Linq.Web.AspNetCore.csproj" />
+    </ItemGroup>
+</Project>

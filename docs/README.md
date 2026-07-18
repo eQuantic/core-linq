@@ -22,6 +22,8 @@ top of it. Every code sample in these guides is backed by a test in the reposito
 eQuantic.Linq.Expressions          the engine: expression ⇄ JSON, inference, casting, extensions
     └── eQuantic.Linq.Web          query-string syntax → typed expressions
             ├── eQuantic.Linq.Web.AspNetCore      binding for MVC & Minimal APIs
+            │       ├── eQuantic.Linq.Web.Swashbuckle   Swagger docs for the query surface
+            │       └── eQuantic.Linq.Web.OpenApi       Microsoft.AspNetCore.OpenApi docs (net10)
             └── eQuantic.Linq.Web.Specification   query strings as specifications
     └── eQuantic.Linq.Specification               the composable specification pattern
 ```
