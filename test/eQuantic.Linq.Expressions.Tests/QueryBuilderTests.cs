@@ -84,13 +84,51 @@ public class QueryFilterBuilderTests
     }
 
     [Test]
-    public void Builds_or_and_not_groups()
+    public void Flat_and_or_chain_folds_left_to_right()
+    {
+        // (total > 100 AND status == Paid) OR isVip
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
+            .And(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+            .Or(o => o.Customer.IsVip, FilterOperator.Equal, true)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("or(and(total:gt(100),status:eq(Paid)),customer.isVip:eq(true))"));
+    }
+
+    [Test]
+    public void Pure_and_chain_flattens_to_a_comma_list()
     {
         var filter = QueryFilterBuilder.For<Order>()
             .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
-            .Or(g => g
+            .And(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+            .And(o => o.Customer.IsVip, FilterOperator.Equal, true)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("total:gt(100),status:eq(Paid),customer.isVip:eq(true)"));
+    }
+
+    [Test]
+    public void Pure_or_chain_flattens_to_one_or_group()
+    {
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+            .Or(o => o.Status, FilterOperator.Equal, OrderStatus.Shipped)
+            .Or(o => o.Status, FilterOperator.Equal, OrderStatus.Delivered)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("or(status:eq(Paid),status:eq(Shipped),status:eq(Delivered))"));
+    }
+
+    [Test]
+    public void And_group_nests_an_or_and_not()
+    {
+        // total > 100 AND (status == Paid OR isVip) AND NOT cancelled
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
+            .And(g => g
                 .Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
-                .Where(o => o.Customer.IsVip, FilterOperator.Equal, true))
+                .Or(o => o.Customer.IsVip, FilterOperator.Equal, true))
             .Not(g => g.Where(o => o.Status, FilterOperator.Equal, OrderStatus.Cancelled))
             .ToString();
 
@@ -209,5 +247,17 @@ public class QueryFilterBuilderTests
     {
         Assert.That(QuerySortBuilder.For<Order>().ByDescending("total").ThenBy("customer.name").ToString(),
             Is.EqualTo("total:desc,customer.name"));
+    }
+
+    [Test]
+    public void Flat_string_chain_folds_like_the_typed_form()
+    {
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where("total", FilterOperator.GreaterThan, 100m)
+            .And("status", FilterOperator.Equal, "Paid")
+            .Or("customer.isVip", FilterOperator.Equal, true)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("or(and(total:gt(100),status:eq(Paid)),customer.isVip:eq(true))"));
     }
 }

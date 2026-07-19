@@ -117,14 +117,23 @@ builder.
 ```csharp
 using eQuantic.Linq.Web;
 
-// Filters: typed → query string
+// Filters fold left to right: Where/And/Or chain flat; And/Or with a lambda nest a group.
 string filter = QueryFilterBuilder.For<Order>()
     .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
-    .Where(o => o.Customer.Name, FilterOperator.Contains, "li")
-    .Or(g => g.Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
-              .Where(o => o.Customer.IsVip, FilterOperator.Equal, true))
+    .And(o => o.Customer.Name, FilterOperator.Contains, "li")
+    .And(g => g.Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+               .Or(o => o.Customer.IsVip, FilterOperator.Equal, true))
     .ToString();
 // "total:gt(100),customer.name:ct(li),or(status:eq(Paid),customer.isVip:eq(true))"
+
+// A pure AND chain flattens to a comma list; a pure OR chain to one or(...) group:
+QueryFilterBuilder.For<Order>()
+    .Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+    .Or(o => o.Status, FilterOperator.Equal, OrderStatus.Shipped)
+    .ToString();                              // "or(status:eq(Paid),status:eq(Shipped))"
+
+// String paths work everywhere a selector does (for dynamic property names):
+QueryFilterBuilder.For<Order>().Where("total", FilterOperator.GreaterThan, 100m);
 
 // Sorts: typed → query string
 string orderBy = QuerySortBuilder.For<Order>()
@@ -133,16 +142,18 @@ string orderBy = QuerySortBuilder.For<Order>()
     .ToString();                              // "total:desc,customer.name"
 
 // Reverse: query string → typed, then inspect / extend / re-emit
-var builder = QueryFilterBuilder.Parse<Order>("total:gt(100)")
-    .Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid);
-var predicate = builder.ToPredicate();        // straight to the engine
+var predicate = QueryFilterBuilder.Parse<Order>("total:gt(100)")
+    .And(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+    .ToPredicate();                           // straight to the engine
 ```
 
-The builder emits exactly what the parser accepts (values are formatted invariantly and quoted only
-when the grammar requires it), so it's the natural way to build the `filterBy`/`orderBy` a client
-sends, or to express filters in code and hand `ToPredicate()`/`ToSorts()` to a repository. The
-reverse covers comparisons, null tests, `in`/`nin` and `and`/`or`/`not`; constructs that aren't
-typed-buildable (collection quantifiers, aggregates, method segments) are still parsed for execution
-by `QueryFilter.Parse` — the builder just declines to represent them.
+Clauses fold **left to right** — `Where(a).And(b).Or(c)` is `(a AND b) OR c` — and consecutive
+same-operator clauses flatten, so a pure AND chain emits a comma list. Use the `And`/`Or`/`Not`
+overloads that take a lambda group for explicit nesting. The builder emits exactly what the parser
+accepts (values formatted invariantly, quoted only when the grammar requires it), so it's the
+natural way to build the `filterBy`/`orderBy` a client sends, or to express filters in code and hand
+`ToPredicate()`/`ToSorts()` to a repository. The reverse covers comparisons, null tests, `in`/`nin`
+and `and`/`or`/`not`; constructs that aren't typed-buildable (collection quantifiers, aggregates,
+method segments) are still parsed for execution by `QueryFilter.Parse`.
 
 Next: [DTO → entity casting →](dto-casting.md)

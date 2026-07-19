@@ -24,34 +24,39 @@ public static class QueryFilterBuilder
 /// Builds query-string filter expressions from typed member selectors and round-trips them:
 /// <c>ToString()</c> produces the filter value (<c>total:gt(100),status:eq(Paid)</c>) that the
 /// parser accepts, and <see cref="Parse"/> reads one back into an inspectable, mutable builder.
-/// Covers comparisons, null tests, <c>in</c>/<c>nin</c> membership and <c>and</c>/<c>or</c>/<c>not</c>
-/// composition; the reverse rejects constructs it cannot model as typed (collection quantifiers,
-/// aggregates, method segments) — use <see cref="QueryFilter"/> to execute those.
+/// Clauses fold left to right — <c>Where(a).And(b).Or(c)</c> is <c>(a AND b) OR c</c> — and
+/// consecutive same-operator clauses flatten (a pure AND chain emits a comma list); use the
+/// <c>And</c>/<c>Or</c>/<c>Not</c> group overloads for explicit nesting. Covers comparisons, null
+/// tests, <c>in</c>/<c>nin</c> membership and <c>and</c>/<c>or</c>/<c>not</c>; the reverse rejects
+/// constructs it cannot model as typed (collection quantifiers, aggregates, method segments) —
+/// use <see cref="QueryFilter"/> to execute those.
 /// </summary>
 /// <typeparam name="T">Root entity being filtered.</typeparam>
 public sealed class QueryFilterBuilder<T>
 {
-    private readonly Group _root = new(or: false);
+    private Node? _root;
 
     /// <summary>Whether the builder holds no clauses (its <c>ToString()</c> is empty).</summary>
-    public bool IsEmpty => _root.Children.Count == 0;
+    public bool IsEmpty => _root is null;
 
-    /// <summary>Adds a comparison clause: <c>path:op(value)</c>, combined with AND.</summary>
+    // ---------------------------------------------------------------- AND clauses
+
+    /// <summary>Adds a comparison clause combined with AND: <c>path:op(value)</c>.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector, e.g. <c>o =&gt; o.Total</c>.</param>
     /// <param name="op">Comparison operator.</param>
     /// <param name="value">Value to compare against (formatted invariantly, quoted when needed).</param>
     public QueryFilterBuilder<T> Where<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value) =>
-        AddComparison(Path(selector), op, QueryLiteral.Value(value));
+        Fold(new Comparison(Path(selector), op, QueryLiteral.Value(value)), or: false);
 
-    /// <summary>Adds a comparison clause by path string, e.g. <c>"customer.name"</c>; the path is used verbatim.</summary>
+    /// <summary>Adds a comparison clause (AND) by path string; the path is used verbatim.</summary>
     /// <param name="path">Member path (may carry method/aggregate segments the lambda form cannot express).</param>
     /// <param name="op">Comparison operator.</param>
-    /// <param name="value">Value to compare against (formatted invariantly, quoted when needed).</param>
+    /// <param name="value">Value to compare against.</param>
     public QueryFilterBuilder<T> Where(string path, FilterOperator op, object? value) =>
-        AddComparison(QueryLiteral.RawPath(path), op, QueryLiteral.Value(value));
+        Fold(new Comparison(QueryLiteral.RawPath(path), op, QueryLiteral.Value(value)), or: false);
 
-    /// <summary>Adds a comparison clause (AND). Reads naturally after <see cref="Where{TMember}"/>.</summary>
+    /// <summary>Adds a comparison clause combined with AND (reads naturally after <see cref="Where{TMember}"/>).</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     /// <param name="op">Comparison operator.</param>
@@ -59,82 +64,91 @@ public sealed class QueryFilterBuilder<T>
     public QueryFilterBuilder<T> And<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value) =>
         Where(selector, op, value);
 
-    /// <summary>Adds a comparison clause by path string (AND).</summary>
+    /// <summary>Adds a comparison clause combined with AND by path string.</summary>
     /// <param name="path">Member path (used verbatim).</param>
     /// <param name="op">Comparison operator.</param>
     /// <param name="value">Value to compare against.</param>
     public QueryFilterBuilder<T> And(string path, FilterOperator op, object? value) =>
         Where(path, op, value);
 
-    /// <summary>Adds a <c>path:eq(null)</c> clause.</summary>
+    // ---------------------------------------------------------------- OR clauses
+
+    /// <summary>Adds a comparison clause combined with OR: everything built so far <c>OR</c> this clause.</summary>
+    /// <typeparam name="TMember">Member type.</typeparam>
+    /// <param name="selector">Member selector.</param>
+    /// <param name="op">Comparison operator.</param>
+    /// <param name="value">Value to compare against.</param>
+    public QueryFilterBuilder<T> Or<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value) =>
+        Fold(new Comparison(Path(selector), op, QueryLiteral.Value(value)), or: true);
+
+    /// <summary>Adds a comparison clause combined with OR by path string.</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    /// <param name="op">Comparison operator.</param>
+    /// <param name="value">Value to compare against.</param>
+    public QueryFilterBuilder<T> Or(string path, FilterOperator op, object? value) =>
+        Fold(new Comparison(QueryLiteral.RawPath(path), op, QueryLiteral.Value(value)), or: true);
+
+    // ---------------------------------------------------------------- null / membership (AND)
+
+    /// <summary>Adds a <c>path:eq(null)</c> clause combined with AND.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     public QueryFilterBuilder<T> WhereNull<TMember>(Expression<Func<T, TMember>> selector) =>
-        AddComparison(Path(selector), FilterOperator.Equal, "null");
+        Fold(new Comparison(Path(selector), FilterOperator.Equal, "null"), or: false);
 
-    /// <summary>Adds a <c>path:eq(null)</c> clause by path string.</summary>
+    /// <summary>Adds a <c>path:eq(null)</c> clause combined with AND by path string.</summary>
     /// <param name="path">Member path (used verbatim).</param>
     public QueryFilterBuilder<T> WhereNull(string path) =>
-        AddComparison(QueryLiteral.RawPath(path), FilterOperator.Equal, "null");
+        Fold(new Comparison(QueryLiteral.RawPath(path), FilterOperator.Equal, "null"), or: false);
 
-    /// <summary>Adds a <c>path:neq(null)</c> clause.</summary>
+    /// <summary>Adds a <c>path:neq(null)</c> clause combined with AND.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     public QueryFilterBuilder<T> WhereNotNull<TMember>(Expression<Func<T, TMember>> selector) =>
-        AddComparison(Path(selector), FilterOperator.NotEqual, "null");
+        Fold(new Comparison(Path(selector), FilterOperator.NotEqual, "null"), or: false);
 
-    /// <summary>Adds a <c>path:neq(null)</c> clause by path string.</summary>
+    /// <summary>Adds a <c>path:neq(null)</c> clause combined with AND by path string.</summary>
     /// <param name="path">Member path (used verbatim).</param>
     public QueryFilterBuilder<T> WhereNotNull(string path) =>
-        AddComparison(QueryLiteral.RawPath(path), FilterOperator.NotEqual, "null");
+        Fold(new Comparison(QueryLiteral.RawPath(path), FilterOperator.NotEqual, "null"), or: false);
 
-    /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause.</summary>
+    /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause combined with AND.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     /// <param name="values">Accepted values.</param>
     public QueryFilterBuilder<T> WhereIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values) =>
-        AddMembership(Path(selector), negated: false, values.Select(v => QueryLiteral.Value(v)));
+        Fold(new Membership(Path(selector), negated: false, values.Select(v => QueryLiteral.Value(v)).ToList()), or: false);
 
-    /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause by path string.</summary>
+    /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause combined with AND by path string.</summary>
     /// <param name="path">Member path (used verbatim).</param>
     /// <param name="values">Accepted values.</param>
     public QueryFilterBuilder<T> WhereIn(string path, params object?[] values) =>
-        AddMembership(QueryLiteral.RawPath(path), negated: false, values.Select(QueryLiteral.Value));
+        Fold(new Membership(QueryLiteral.RawPath(path), negated: false, values.Select(QueryLiteral.Value).ToList()), or: false);
 
-    /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause.</summary>
+    /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause combined with AND.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     /// <param name="values">Rejected values.</param>
     public QueryFilterBuilder<T> WhereNotIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values) =>
-        AddMembership(Path(selector), negated: true, values.Select(v => QueryLiteral.Value(v)));
+        Fold(new Membership(Path(selector), negated: true, values.Select(v => QueryLiteral.Value(v)).ToList()), or: false);
 
-    /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause by path string.</summary>
+    /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause combined with AND by path string.</summary>
     /// <param name="path">Member path (used verbatim).</param>
     /// <param name="values">Rejected values.</param>
     public QueryFilterBuilder<T> WhereNotIn(string path, params object?[] values) =>
-        AddMembership(QueryLiteral.RawPath(path), negated: true, values.Select(QueryLiteral.Value));
+        Fold(new Membership(QueryLiteral.RawPath(path), negated: true, values.Select(QueryLiteral.Value).ToList()), or: false);
 
-    private QueryFilterBuilder<T> AddComparison(string path, FilterOperator op, string valueToken)
-    {
-        _root.Children.Add(new Comparison(path, op, valueToken));
-        return this;
-    }
+    // ---------------------------------------------------------------- groups
 
-    private QueryFilterBuilder<T> AddMembership(string path, bool negated, IEnumerable<string> valueTokens)
-    {
-        _root.Children.Add(new Membership(path, negated, valueTokens.ToList()));
-        return this;
-    }
-
-    /// <summary>Adds an <c>or(…)</c> group; the clauses added inside are combined with OR.</summary>
+    /// <summary>Combines everything built so far with OR against a nested group of clauses.</summary>
     /// <param name="build">Builds the grouped clauses.</param>
-    public QueryFilterBuilder<T> Or(Action<QueryFilterBuilder<T>> build) => Nest(or: true, build);
+    public QueryFilterBuilder<T> Or(Action<QueryFilterBuilder<T>> build) => FoldGroup(build, or: true);
 
-    /// <summary>Adds an explicit <c>and(…)</c> group; the clauses added inside are combined with AND.</summary>
+    /// <summary>Combines everything built so far with AND against a nested group of clauses.</summary>
     /// <param name="build">Builds the grouped clauses.</param>
-    public QueryFilterBuilder<T> And(Action<QueryFilterBuilder<T>> build) => Nest(or: false, build);
+    public QueryFilterBuilder<T> And(Action<QueryFilterBuilder<T>> build) => FoldGroup(build, or: false);
 
-    /// <summary>Adds a <c>not(…)</c> negation around the clauses added inside.</summary>
+    /// <summary>Adds (with AND) a <c>not(…)</c> negation around the clauses added inside.</summary>
     /// <param name="build">Builds the negated clauses.</param>
     public QueryFilterBuilder<T> Not(Action<QueryFilterBuilder<T>> build)
     {
@@ -145,10 +159,10 @@ public sealed class QueryFilterBuilder<T>
 
         var sub = new QueryFilterBuilder<T>();
         build(sub);
-        Node inner = sub._root.Children.Count == 1 ? sub._root.Children[0] : new Group(or: false, sub._root.Children);
-        _root.Children.Add(new Negation(inner));
-        return this;
+        return sub._root is null ? this : Fold(new Negation(sub._root), or: false);
     }
+
+    // ---------------------------------------------------------------- output
 
     /// <summary>The filter as a serializable expression model (through the real parser).</summary>
     /// <param name="options">Query-string options; defaults apply when omitted.</param>
@@ -163,6 +177,11 @@ public sealed class QueryFilterBuilder<T>
     /// <summary>The filter query-string value (empty when no clause was added).</summary>
     public override string ToString()
     {
+        if (_root is null)
+        {
+            return string.Empty;
+        }
+
         var builder = new StringBuilder();
         _root.Write(builder, root: true);
         return builder.ToString();
@@ -179,18 +198,37 @@ public sealed class QueryFilterBuilder<T>
         }
 
         var reader = new SyntaxReader(filter);
-        var builder = new QueryFilterBuilder<T>();
-        builder._root.Children.AddRange(ParseList(reader));
+        var nodes = ParseList(reader);
         reader.SkipWhitespace();
         if (!reader.End)
         {
             throw reader.Error("unexpected trailing characters");
         }
 
-        return builder;
+        return new QueryFilterBuilder<T> { _root = nodes.Count == 1 ? nodes[0] : new Group(or: false, nodes) };
     }
 
-    private QueryFilterBuilder<T> Nest(bool or, Action<QueryFilterBuilder<T>> build)
+    // ---------------------------------------------------------------- folding
+
+    private QueryFilterBuilder<T> Fold(Node node, bool or)
+    {
+        if (_root is null)
+        {
+            _root = node;
+        }
+        else if (_root is Group group && group.Or == or)
+        {
+            group.Children.Add(node);
+        }
+        else
+        {
+            _root = new Group(or, [_root, node]);
+        }
+
+        return this;
+    }
+
+    private QueryFilterBuilder<T> FoldGroup(Action<QueryFilterBuilder<T>> build, bool or)
     {
         if (build is null)
         {
@@ -199,12 +237,11 @@ public sealed class QueryFilterBuilder<T>
 
         var sub = new QueryFilterBuilder<T>();
         build(sub);
-        _root.Children.Add(new Group(or, sub._root.Children));
-        return this;
+        return sub._root is null ? this : Fold(sub._root, or);
     }
 
     private string RequireNonEmpty() =>
-        IsEmpty ? throw new InvalidOperationException("The filter builder has no clauses.") : ToString();
+        _root is null ? throw new InvalidOperationException("The filter builder has no clauses.") : ToString();
 
     private static string Path<TMember>(Expression<Func<T, TMember>> selector) =>
         QueryLiteral.Path(selector ?? throw new ArgumentNullException(nameof(selector)));
@@ -346,18 +383,16 @@ public sealed class QueryFilterBuilder<T>
 
     private sealed class Group(bool or, List<Node> children) : Node
     {
-        public List<Node> Children { get; } = children;
+        public bool Or { get; } = or;
 
-        public Group(bool or) : this(or, [])
-        {
-        }
+        public List<Node> Children { get; } = children;
 
         public override void Write(StringBuilder builder, bool root)
         {
-            var wrap = !root || or;
+            var wrap = !root || Or;
             if (wrap)
             {
-                builder.Append(or ? "or" : "and").Append('(');
+                builder.Append(Or ? "or" : "and").Append('(');
             }
 
             for (var i = 0; i < Children.Count; i++)
