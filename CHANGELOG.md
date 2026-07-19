@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.3.0](https://github.com/eQuantic/core-linq/compare/v3.2.1...v3.3.0) (2026-07-19)
+
+### Features
+
+* code-first typed query-string builders ([27ecfe2](https://github.com/eQuantic/core-linq/commit/27ecfe2c2e412d9eca136f6ee16ec2c64c434991))
+
 ## [3.2.1](https://github.com/eQuantic/core-linq/compare/v3.2.0...v3.2.1) (2026-07-18)
 
 ### Bug Fixes
