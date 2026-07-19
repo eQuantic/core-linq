@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.7.0](https://github.com/eQuantic/core-linq/compare/v3.6.0...v3.7.0) (2026-07-19)
+
+### Features
+
+* LINQ-idiomatic OrderBy on QuerySortBuilder ([7634a50](https://github.com/eQuantic/core-linq/commit/7634a502c3829fbca50cb8ea5386480e0e5770e3))
+
 ## [3.6.0](https://github.com/eQuantic/core-linq/compare/v3.5.0...v3.6.0) (2026-07-19)
 
 ### Features
