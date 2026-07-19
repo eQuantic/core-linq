@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.0](https://github.com/eQuantic/core-linq/compare/v3.5.0...v3.6.0) (2026-07-19)
+
+### Features
+
+* fluent and/or clause folding in QueryFilterBuilder ([39b301a](https://github.com/eQuantic/core-linq/commit/39b301ac43b2271e9359fb43c161eb0ab909ba72))
+
 ## [3.5.0](https://github.com/eQuantic/core-linq/compare/v3.4.0...v3.5.0) (2026-07-19)
 
 ### Features
