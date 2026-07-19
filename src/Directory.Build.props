@@ -2,7 +2,7 @@
 
     <!-- Shared packaging/build metadata for every eQuantic.Linq package. -->
     <PropertyGroup>
-        <Version>3.4.0</Version>
+        <Version>3.5.0</Version>
         <Authors>eQuantic Tech</Authors>
         <Copyright>2026 eQuantic Tech</Copyright>
         <PackageProjectUrl>https://github.com/eQuantic/core-linq</PackageProjectUrl>

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.0](https://github.com/eQuantic/core-linq/compare/v3.4.0...v3.5.0) (2026-07-19)
+
+### Features
+
+* revive eQuantic.Linq as the pure-core meta-package ([33e4f47](https://github.com/eQuantic/core-linq/commit/33e4f4724db18717f32a7d3a22c800bf58e855d8))
+
 ## [3.4.0](https://github.com/eQuantic/core-linq/compare/v3.3.0...v3.4.0) (2026-07-19)
 
 ### Features
