@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.0](https://github.com/eQuantic/core-linq/compare/v3.3.0...v3.4.0) (2026-07-19)
+
+### Features
+
+* string-path overloads for the query builders ([041480d](https://github.com/eQuantic/core-linq/commit/041480d3e4cbde0a0dee30aa92e799f87ce8ca36))
+
 ## [3.3.0](https://github.com/eQuantic/core-linq/compare/v3.2.1...v3.3.0) (2026-07-19)
 
 ### Features
