@@ -10,7 +10,7 @@ public class QuerySortBuilderTests
     public void Builds_ordering_string_code_first()
     {
         var orderBy = QuerySortBuilder.For<Order>()
-            .ByDescending(o => o.Total)
+            .OrderByDescending(o => o.Total)
             .ThenBy(o => o.Customer.Name)
             .ToString();
 
@@ -20,13 +20,13 @@ public class QuerySortBuilderTests
     [Test]
     public void Ascending_direction_is_omitted()
     {
-        Assert.That(QuerySortBuilder.For<Order>().By(o => o.Id).ToString(), Is.EqualTo("id"));
+        Assert.That(QuerySortBuilder.For<Order>().OrderBy(o => o.Id).ToString(), Is.EqualTo("id"));
     }
 
     [Test]
     public void ToSorts_feeds_the_typed_sort_surface()
     {
-        var sorts = QuerySortBuilder.For<Order>().ByDescending(o => o.Total).ToSorts();
+        var sorts = QuerySortBuilder.For<Order>().OrderByDescending(o => o.Total).ToSorts();
 
         Assert.Multiple(() =>
         {
@@ -245,7 +245,7 @@ public class QueryFilterBuilderTests
     [Test]
     public void Sort_builder_accepts_string_paths()
     {
-        Assert.That(QuerySortBuilder.For<Order>().ByDescending("total").ThenBy("customer.name").ToString(),
+        Assert.That(QuerySortBuilder.For<Order>().OrderByDescending("total").ThenBy("customer.name").ToString(),
             Is.EqualTo("total:desc,customer.name"));
     }
 

@@ -36,16 +36,16 @@ public sealed class QuerySortBuilder<T>
 
     internal QuerySortBuilder(IEnumerable<QuerySort<T>> sorts) => _sorts.AddRange(sorts);
 
-    /// <summary>Appends an ascending sort by the selected member.</summary>
+    /// <summary>Appends an ascending sort by the selected member (the primary sort).</summary>
     /// <typeparam name="TKey">Member type.</typeparam>
     /// <param name="selector">Member selector, e.g. <c>o =&gt; o.Customer.Name</c>.</param>
-    public QuerySortBuilder<T> By<TKey>(Expression<Func<T, TKey>> selector) =>
+    public QuerySortBuilder<T> OrderBy<TKey>(Expression<Func<T, TKey>> selector) =>
         Add(selector, SortDirection.Ascending);
 
-    /// <summary>Appends a descending sort by the selected member.</summary>
+    /// <summary>Appends a descending sort by the selected member (the primary sort).</summary>
     /// <typeparam name="TKey">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
-    public QuerySortBuilder<T> ByDescending<TKey>(Expression<Func<T, TKey>> selector) =>
+    public QuerySortBuilder<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> selector) =>
         Add(selector, SortDirection.Descending);
 
     /// <summary>Appends an ascending sort (reads as a secondary sort after previous calls).</summary>
@@ -60,13 +60,13 @@ public sealed class QuerySortBuilder<T>
     public QuerySortBuilder<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> selector) =>
         Add(selector, SortDirection.Descending);
 
-    /// <summary>Appends an ascending sort by path string, e.g. <c>"customer.name"</c>.</summary>
+    /// <summary>Appends an ascending sort by path string, e.g. <c>"customer.name"</c> (the primary sort).</summary>
     /// <param name="path">Member path.</param>
-    public QuerySortBuilder<T> By(string path) => Add(path, SortDirection.Ascending);
+    public QuerySortBuilder<T> OrderBy(string path) => Add(path, SortDirection.Ascending);
 
-    /// <summary>Appends a descending sort by path string.</summary>
+    /// <summary>Appends a descending sort by path string (the primary sort).</summary>
     /// <param name="path">Member path.</param>
-    public QuerySortBuilder<T> ByDescending(string path) => Add(path, SortDirection.Descending);
+    public QuerySortBuilder<T> OrderByDescending(string path) => Add(path, SortDirection.Descending);
 
     /// <summary>Appends an ascending sort by path string (reads as a secondary sort).</summary>
     /// <param name="path">Member path.</param>

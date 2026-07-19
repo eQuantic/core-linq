@@ -137,7 +137,7 @@ QueryFilterBuilder.For<Order>().Where("total", FilterOperator.GreaterThan, 100m)
 
 // Sorts: typed → query string
 string orderBy = QuerySortBuilder.For<Order>()
-    .ByDescending(o => o.Total)
+    .OrderByDescending(o => o.Total)
     .ThenBy(o => o.Customer.Name)
     .ToString();                              // "total:desc,customer.name"
 
