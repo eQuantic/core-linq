@@ -108,4 +108,41 @@ keys and serializable in responses.
 - Every parsed filter is exposed as a serializable `ExpressionModel<T>`
   (`EntityQuery<T>.FilterModel`, `QueryFilter.ParseModel<T>`) for onward transport.
 
+## Building query strings in code
+
+The grammar above is authored from typed member selectors — no magic strings — and round-trips:
+`ToString()` produces the query string, and `Parse` reads one back into an inspectable, mutable
+builder.
+
+```csharp
+using eQuantic.Linq.Web;
+
+// Filters: typed → query string
+string filter = QueryFilterBuilder.For<Order>()
+    .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
+    .Where(o => o.Customer.Name, FilterOperator.Contains, "li")
+    .Or(g => g.Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+              .Where(o => o.Customer.IsVip, FilterOperator.Equal, true))
+    .ToString();
+// "total:gt(100),customer.name:ct(li),or(status:eq(Paid),customer.isVip:eq(true))"
+
+// Sorts: typed → query string
+string orderBy = QuerySortBuilder.For<Order>()
+    .ByDescending(o => o.Total)
+    .ThenBy(o => o.Customer.Name)
+    .ToString();                              // "total:desc,customer.name"
+
+// Reverse: query string → typed, then inspect / extend / re-emit
+var builder = QueryFilterBuilder.Parse<Order>("total:gt(100)")
+    .Where(o => o.Status, FilterOperator.Equal, OrderStatus.Paid);
+var predicate = builder.ToPredicate();        // straight to the engine
+```
+
+The builder emits exactly what the parser accepts (values are formatted invariantly and quoted only
+when the grammar requires it), so it's the natural way to build the `filterBy`/`orderBy` a client
+sends, or to express filters in code and hand `ToPredicate()`/`ToSorts()` to a repository. The
+reverse covers comparisons, null tests, `in`/`nin` and `and`/`or`/`not`; constructs that aren't
+typed-buildable (collection quantifiers, aggregates, method segments) are still parsed for execution
+by `QueryFilter.Parse` — the builder just declines to represent them.
+
 Next: [DTO → entity casting →](dto-casting.md)
