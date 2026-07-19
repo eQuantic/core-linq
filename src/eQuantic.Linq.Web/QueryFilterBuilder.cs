@@ -41,47 +41,88 @@ public sealed class QueryFilterBuilder<T>
     /// <param name="selector">Member selector, e.g. <c>o =&gt; o.Total</c>.</param>
     /// <param name="op">Comparison operator.</param>
     /// <param name="value">Value to compare against (formatted invariantly, quoted when needed).</param>
-    public QueryFilterBuilder<T> Where<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value)
-    {
-        _root.Children.Add(new Comparison(Path(selector), op, QueryLiteral.Value(value)));
-        return this;
-    }
+    public QueryFilterBuilder<T> Where<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value) =>
+        AddComparison(Path(selector), op, QueryLiteral.Value(value));
+
+    /// <summary>Adds a comparison clause by path string, e.g. <c>"customer.name"</c>; the path is used verbatim.</summary>
+    /// <param name="path">Member path (may carry method/aggregate segments the lambda form cannot express).</param>
+    /// <param name="op">Comparison operator.</param>
+    /// <param name="value">Value to compare against (formatted invariantly, quoted when needed).</param>
+    public QueryFilterBuilder<T> Where(string path, FilterOperator op, object? value) =>
+        AddComparison(QueryLiteral.RawPath(path), op, QueryLiteral.Value(value));
+
+    /// <summary>Adds a comparison clause (AND). Reads naturally after <see cref="Where{TMember}"/>.</summary>
+    /// <typeparam name="TMember">Member type.</typeparam>
+    /// <param name="selector">Member selector.</param>
+    /// <param name="op">Comparison operator.</param>
+    /// <param name="value">Value to compare against.</param>
+    public QueryFilterBuilder<T> And<TMember>(Expression<Func<T, TMember>> selector, FilterOperator op, TMember value) =>
+        Where(selector, op, value);
+
+    /// <summary>Adds a comparison clause by path string (AND).</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    /// <param name="op">Comparison operator.</param>
+    /// <param name="value">Value to compare against.</param>
+    public QueryFilterBuilder<T> And(string path, FilterOperator op, object? value) =>
+        Where(path, op, value);
 
     /// <summary>Adds a <c>path:eq(null)</c> clause.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
-    public QueryFilterBuilder<T> WhereNull<TMember>(Expression<Func<T, TMember>> selector)
-    {
-        _root.Children.Add(new Comparison(Path(selector), FilterOperator.Equal, "null"));
-        return this;
-    }
+    public QueryFilterBuilder<T> WhereNull<TMember>(Expression<Func<T, TMember>> selector) =>
+        AddComparison(Path(selector), FilterOperator.Equal, "null");
+
+    /// <summary>Adds a <c>path:eq(null)</c> clause by path string.</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    public QueryFilterBuilder<T> WhereNull(string path) =>
+        AddComparison(QueryLiteral.RawPath(path), FilterOperator.Equal, "null");
 
     /// <summary>Adds a <c>path:neq(null)</c> clause.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
-    public QueryFilterBuilder<T> WhereNotNull<TMember>(Expression<Func<T, TMember>> selector)
-    {
-        _root.Children.Add(new Comparison(Path(selector), FilterOperator.NotEqual, "null"));
-        return this;
-    }
+    public QueryFilterBuilder<T> WhereNotNull<TMember>(Expression<Func<T, TMember>> selector) =>
+        AddComparison(Path(selector), FilterOperator.NotEqual, "null");
+
+    /// <summary>Adds a <c>path:neq(null)</c> clause by path string.</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    public QueryFilterBuilder<T> WhereNotNull(string path) =>
+        AddComparison(QueryLiteral.RawPath(path), FilterOperator.NotEqual, "null");
 
     /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     /// <param name="values">Accepted values.</param>
-    public QueryFilterBuilder<T> WhereIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values)
-    {
-        _root.Children.Add(new Membership(Path(selector), negated: false, values.Select(v => QueryLiteral.Value(v)).ToList()));
-        return this;
-    }
+    public QueryFilterBuilder<T> WhereIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values) =>
+        AddMembership(Path(selector), negated: false, values.Select(v => QueryLiteral.Value(v)));
+
+    /// <summary>Adds a <c>path:in(v1|v2|…)</c> membership clause by path string.</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    /// <param name="values">Accepted values.</param>
+    public QueryFilterBuilder<T> WhereIn(string path, params object?[] values) =>
+        AddMembership(QueryLiteral.RawPath(path), negated: false, values.Select(QueryLiteral.Value));
 
     /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause.</summary>
     /// <typeparam name="TMember">Member type.</typeparam>
     /// <param name="selector">Member selector.</param>
     /// <param name="values">Rejected values.</param>
-    public QueryFilterBuilder<T> WhereNotIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values)
+    public QueryFilterBuilder<T> WhereNotIn<TMember>(Expression<Func<T, TMember>> selector, params TMember[] values) =>
+        AddMembership(Path(selector), negated: true, values.Select(v => QueryLiteral.Value(v)));
+
+    /// <summary>Adds a <c>path:nin(v1|v2|…)</c> negated-membership clause by path string.</summary>
+    /// <param name="path">Member path (used verbatim).</param>
+    /// <param name="values">Rejected values.</param>
+    public QueryFilterBuilder<T> WhereNotIn(string path, params object?[] values) =>
+        AddMembership(QueryLiteral.RawPath(path), negated: true, values.Select(QueryLiteral.Value));
+
+    private QueryFilterBuilder<T> AddComparison(string path, FilterOperator op, string valueToken)
     {
-        _root.Children.Add(new Membership(Path(selector), negated: true, values.Select(v => QueryLiteral.Value(v)).ToList()));
+        _root.Children.Add(new Comparison(path, op, valueToken));
+        return this;
+    }
+
+    private QueryFilterBuilder<T> AddMembership(string path, bool negated, IEnumerable<string> valueTokens)
+    {
+        _root.Children.Add(new Membership(path, negated, valueTokens.ToList()));
         return this;
     }
 

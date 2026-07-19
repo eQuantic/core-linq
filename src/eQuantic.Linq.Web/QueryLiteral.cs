@@ -20,6 +20,17 @@ internal static class QueryLiteral
         return string.Join(".", path.Split('.').Select(CamelCase));
     }
 
+    /// <summary>Validates and trims a caller-supplied path, used verbatim (may carry method/aggregate segments).</summary>
+    public static string RawPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Path is empty.", nameof(path));
+        }
+
+        return path.Trim();
+    }
+
     /// <summary>Formats a value as a grammar literal: <c>null</c> keyword, invariant text, quoted when needed.</summary>
     public static string Value(object? value) => value switch
     {

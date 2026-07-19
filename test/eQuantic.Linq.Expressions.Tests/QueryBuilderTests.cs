@@ -166,4 +166,48 @@ public class QueryFilterBuilderTests
             Assert.That(() => QueryFilterBuilder.Parse<Order>("items.count():gt(1)"), Throws.InstanceOf<QueryStringParseException>());
         });
     }
+
+    [Test]
+    public void String_path_overloads_mirror_the_lambda_form()
+    {
+        var lambda = QueryFilterBuilder.For<Order>()
+            .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
+            .And(o => o.Customer.Name, FilterOperator.Contains, "li")
+            .ToString();
+
+        var strings = QueryFilterBuilder.For<Order>()
+            .Where("total", FilterOperator.GreaterThan, 100m)
+            .And("customer.name", FilterOperator.Contains, "li")
+            .ToString();
+
+        Assert.That(strings, Is.EqualTo(lambda));
+    }
+
+    [Test]
+    public void String_paths_can_express_segments_beyond_lambdas()
+    {
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where("items.count()", FilterOperator.GreaterThan, 1)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("items.count():gt(1)"));
+    }
+
+    [Test]
+    public void And_clause_is_sugar_for_where()
+    {
+        var filter = QueryFilterBuilder.For<Order>()
+            .Where(o => o.Total, FilterOperator.GreaterThan, 100m)
+            .And(o => o.Status, FilterOperator.Equal, OrderStatus.Paid)
+            .ToString();
+
+        Assert.That(filter, Is.EqualTo("total:gt(100),status:eq(Paid)"));
+    }
+
+    [Test]
+    public void Sort_builder_accepts_string_paths()
+    {
+        Assert.That(QuerySortBuilder.For<Order>().ByDescending("total").ThenBy("customer.name").ToString(),
+            Is.EqualTo("total:desc,customer.name"));
+    }
 }

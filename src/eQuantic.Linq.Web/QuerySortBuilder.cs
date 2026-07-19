@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text;
+using eQuantic.Linq.Expressions;
 
 namespace eQuantic.Linq.Web;
 
@@ -59,6 +60,22 @@ public sealed class QuerySortBuilder<T>
     public QuerySortBuilder<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> selector) =>
         Add(selector, SortDirection.Descending);
 
+    /// <summary>Appends an ascending sort by path string, e.g. <c>"customer.name"</c>.</summary>
+    /// <param name="path">Member path.</param>
+    public QuerySortBuilder<T> By(string path) => Add(path, SortDirection.Ascending);
+
+    /// <summary>Appends a descending sort by path string.</summary>
+    /// <param name="path">Member path.</param>
+    public QuerySortBuilder<T> ByDescending(string path) => Add(path, SortDirection.Descending);
+
+    /// <summary>Appends an ascending sort by path string (reads as a secondary sort).</summary>
+    /// <param name="path">Member path.</param>
+    public QuerySortBuilder<T> ThenBy(string path) => Add(path, SortDirection.Ascending);
+
+    /// <summary>Appends a descending sort by path string (reads as a secondary sort).</summary>
+    /// <param name="path">Member path.</param>
+    public QuerySortBuilder<T> ThenByDescending(string path) => Add(path, SortDirection.Descending);
+
     /// <summary>The built sorts, ready for <c>QueryOptions.OrderBy(params QuerySort&lt;T&gt;[])</c> and the like.</summary>
     public IReadOnlyList<QuerySort<T>> ToSorts() => _sorts;
 
@@ -91,6 +108,13 @@ public sealed class QuerySortBuilder<T>
         }
 
         _sorts.Add(new QuerySort<T>(QueryLiteral.Path(selector), direction, selector));
+        return this;
+    }
+
+    private QuerySortBuilder<T> Add(string path, SortDirection direction)
+    {
+        var raw = QueryLiteral.RawPath(path);
+        _sorts.Add(new QuerySort<T>(raw, direction, MemberPathExtensions.ToSelector<T>(raw)));
         return this;
     }
 }
