@@ -50,6 +50,7 @@ DTO/entity boundaries, and rebuild them anywhere as *real, provider-translatable
 
 | Package | Purpose |
 |---------|---------|
+| **eQuantic.Linq** | Meta-package: the framework-free core in one reference (Expressions + Web + Specification). |
 | **eQuantic.Linq.Expressions** | The engine: expression ⇄ model ⇄ JSON, root-anchored inference, DTO→entity casting, predicate composition, null guards. |
 | **eQuantic.Linq.Web** | Query-string syntax (`filter`, `orderBy`, `skip`, `take`, `select`) parsed into typed expressions; `QueryModel<T>` whole-query documents. |
 | **eQuantic.Linq.Web.AspNetCore** | `EntityQuery<T>` binding for Minimal APIs and MVC, parse errors as 400s, JSON options prepared for expression payloads. |

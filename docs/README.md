@@ -19,14 +19,19 @@ top of it. Every code sample in these guides is backed by a test in the reposito
 ## Packages at a glance
 
 ```
+eQuantic.Linq  ── meta-package: the framework-free core in one reference ──┐
+                                                                           │
 eQuantic.Linq.Expressions          the engine: expression ⇄ JSON, inference, casting, extensions
-    └── eQuantic.Linq.Web          query-string syntax → typed expressions
+    └── eQuantic.Linq.Web          query-string syntax → typed expressions, code-first builders
             ├── eQuantic.Linq.Web.AspNetCore      binding for MVC & Minimal APIs
             │       ├── eQuantic.Linq.Web.Swashbuckle   Swagger docs for the query surface
             │       └── eQuantic.Linq.Web.OpenApi       Microsoft.AspNetCore.OpenApi docs (net10)
             └── eQuantic.Linq.Web.Specification   query strings as specifications
     └── eQuantic.Linq.Specification               the composable specification pattern
 ```
+
+`eQuantic.Linq` bundles the three framework-free packages (Expressions + Web + Specification) for a
+single-reference start; the ASP.NET Core / Swagger / OpenAPI integrations stay opt-in.
 
 Start with guide 1 — it takes ten minutes and everything else builds on it.
 
