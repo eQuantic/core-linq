@@ -91,7 +91,37 @@ internal static class PartialEvaluator
             return false;
         }
 
+        // ByRefLike types (Span<T>/ReadOnlySpan<T>) cannot be boxed to object, so Evaluate — which
+        // boxes the folded value via Expression.Convert(node, typeof(object)) — would throw. This
+        // surfaces when `array.Contains(x)` binds to MemoryExtensions.Contains(ReadOnlySpan<T>, T)
+        // through an implicit array→span conversion (op_Implicit) whose node type is ReadOnlySpan<T>.
+        // Keeping such nodes structural still folds their evaluable operands (e.g. a captured array).
+        if (IsByRefLike(expression.Type))
+        {
+            return false;
+        }
+
         return true;
+    }
+
+    private static bool IsByRefLike(Type type)
+    {
+#if NETSTANDARD2_0
+        // Type.IsByRefLike is unavailable on netstandard2.0. Ref-struct types carry a compiler-emitted
+        // [IsByRefLikeAttribute] marker in metadata (declared on the generic definition, so it surfaces
+        // for constructed types like ReadOnlySpan<int>); detect it by name without loading the attribute.
+        foreach (var attribute in type.GetCustomAttributesData())
+        {
+            if (attribute.AttributeType.FullName == "System.Runtime.CompilerServices.IsByRefLikeAttribute")
+            {
+                return true;
+            }
+        }
+
+        return false;
+#else
+        return type.IsByRefLike;
+#endif
     }
 
     private static bool IsComparerLike(Type type) =>

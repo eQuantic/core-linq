@@ -58,6 +58,44 @@ public class ClosureTests
     }
 
     [Test]
+    public void Captured_array_span_contains_folds_and_serializes()
+    {
+        // In modern .NET, `array.Contains(value)` binds to MemoryExtensions.Contains(ReadOnlySpan<T>, T)
+        // through an implicit array→ReadOnlySpan<T> conversion (op_Implicit). That conversion node is typed
+        // ReadOnlySpan<int> — a ByRefLike ref struct that cannot be boxed to object. Nominating it for local
+        // evaluation used to throw ExpressionSerializationException; instead the captured array operand must
+        // fold to a constant while the span-conversion node stays structural.
+        var ids = new[] { 1, 2, 3 };
+        Expression<Func<Order, bool>> lambda = o => ids.Contains(o.Id);
+
+        LambdaNode node = null!;
+        Assert.That(() => node = (LambdaNode)Serializer().ToNode(lambda), Throws.Nothing,
+            "Span-bound Contains must partial-evaluate without throwing");
+
+        Assert.That(node.Body, Is.InstanceOf<MethodCallNode>(), "Contains call must stay structural");
+        var conversion = ((MethodCallNode)node.Body).Arguments![0];
+        Assert.That(conversion, Is.InstanceOf<MethodCallNode>(), "array→ReadOnlySpan conversion must stay structural");
+        var folded = ((MethodCallNode)conversion).Arguments![0];
+        Assert.That(folded, Is.InstanceOf<ConstantNode>(), "captured array must fold into a constant");
+        Assert.That(((ConstantNode)folded).Value, Is.EqualTo(new[] { 1, 2, 3 }));
+
+        Executes(lambda, Args(TestData.Orders[0]), Args(TestData.Orders[1]), Args(TestData.Orders[2]));
+    }
+
+    [Test]
+    public void Inline_array_span_contains_serializes()
+    {
+        // Same ReadOnlySpan<int> span-conversion node as the captured case, but with an inline `new[] {…}`
+        // operand: the NewArrayInit stays structural, so the conversion node is never nominated for
+        // evaluation. It must still serialize, round-trip, and execute.
+        Expression<Func<Order, bool>> lambda = o => new[] { 1, 2, 3 }.Contains(o.Id);
+
+        Assert.That(() => Serializer().ToNode(lambda), Throws.Nothing);
+
+        Executes(lambda, Args(TestData.Orders[0]), Args(TestData.Orders[1]), Args(TestData.Orders[2]));
+    }
+
+    [Test]
     public void Captured_this_member_folds_to_constant()
     {
         Expression<Func<Order, decimal>> lambda = o => o.Total * _factor;
