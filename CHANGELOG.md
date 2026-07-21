@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.7.1](https://github.com/eQuantic/core-linq/compare/v3.7.0...v3.7.1) (2026-07-21)
+
+### Bug Fixes
+
+* partial-eval crash on Span-bound array.Contains ([336bef8](https://github.com/eQuantic/core-linq/commit/336bef838529a859e61eb813628b5d783bdd4b64))
+
 ## [3.7.0](https://github.com/eQuantic/core-linq/compare/v3.6.0...v3.7.0) (2026-07-19)
 
 ### Features
